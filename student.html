@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Campus · Student Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SC</div>
+      <div>
+        <div class="brand-title">Smart Campus</div>
+        <div class="brand-sub">Digital Twin</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Menu</div>
+      <a href="#home" class="nav-item active" data-page="home">
+        <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        Dashboard
+      </a>
+      <a href="#map" class="nav-item" data-page="map">
+        <svg viewBox="0 0 24 24"><path d="M9 3L3 5v16l6-2 6 2 6-2V3l-6 2-6-2zM9 3v16M15 5v16" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        Campus Map
+      </a>
+      <a href="#announcements" class="nav-item" data-page="announcements">
+        <svg viewBox="0 0 24 24"><path d="M3 11v2a2 2 0 0 0 2 2h2l7 4V5L7 9H5a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        Announcements
+      </a>
+      <a href="#market" class="nav-item" data-page="market">
+        <svg viewBox="0 0 24 24"><path d="M3 7h18l-2 12H5L3 7zM8 7V5a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        Market
+      </a>
+      <a href="#notifications" class="nav-item" data-page="notifications">
+        <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8zM10 21a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        Notifications
+        <span class="badge">4</span>
+      </a>
+      <a href="#signout" id="btn-student-signout" class="nav-item" style="margin-top:auto; color:#ea580c">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="profile">
+      <div class="avatar">
+        <img src="https://i.pravatar.cc/80?img=15" alt="Student"/>
+        <span class="status"></span>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" id="student-sidebar-name">Student User</div>
+        <div class="profile-id" id="student-sidebar-id">ID · —</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-sub">Welcome to your Smart Campus</p>
+      </div>
+      <div class="topbar-right">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+          <input id="globalSearch" type="text" placeholder="Search buildings, products, announcements..."/>
+        </div>
+        <button class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8zM10 21a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="dot"></span>
+        </button>
+        <div class="user-chip">
+          <img src="https://i.pravatar.cc/80?img=15" alt=""/>
+          <div>
+            <div class="user-name" id="student-topbar-name">Student</div>
+            <div class="user-role">Student</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="welcome">
+      <div>
+        <div class="eyebrow">Good <span id="daypart">morning</span></div>
+        <h2>Welcome back, <span class="accent" id="student-welcome-name">Student</span> 👋</h2>
+        <p>Here's what's happening around the Smart Campus today · <span id="clock">--:--:--</span></p>
+      </div>
+      <div class="welcome-stats">
+        <div class="ws"><span class="ws-num">3</span><span class="ws-lbl">New Announcements</span></div>
+        <div class="ws"><span class="ws-num">7</span><span class="ws-lbl">New Products</span></div>
+        <div class="ws"><span class="ws-num gold">92%</span><span class="ws-lbl">Campus Activity</span></div>
+      </div>
+    </section>
+
+    <section class="quick-access">
+      <a class="qa-card" href="#map">
+        <div class="qa-icon qa-wine"><svg viewBox="0 0 24 24"><path d="M12 22s-7-7.2-7-12a7 7 0 1 1 14 0c0 4.8-7 12-7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div><div class="qa-title">Campus Map</div><div class="qa-sub">Navigate the campus</div></div>
+      </a>
+      <a class="qa-card" href="#announcements">
+        <div class="qa-icon qa-gold"><svg viewBox="0 0 24 24"><path d="M3 11v2a2 2 0 0 0 2 2h2l7 4V5L7 9H5a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div><div class="qa-title">Announcements</div><div class="qa-sub">Latest campus news</div></div>
+      </a>
+      <a class="qa-card" href="#market">
+        <div class="qa-icon qa-green"><svg viewBox="0 0 24 24"><path d="M3 7h18l-2 12H5L3 7zM8 7V5a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div><div class="qa-title">Market</div><div class="qa-sub">Shop on campus</div></div>
+      </a>
+      <a class="qa-card" href="#notifications">
+        <div class="qa-icon qa-dark"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div><div class="qa-title">Notifications</div><div class="qa-sub">Reminders & alerts</div></div>
+      </a>
+    </section>
+
+    <section class="grid-main">
+      <div class="card map-card" id="map">
+        <div class="card-head">
+          <div>
+            <h3>Interactive Campus Map</h3>
+            <p>Explore buildings and facilities in real time</p>
+          </div>
+          <div class="map-tools">
+            <div class="live"><span class="live-dot"></span>LIVE</div>
+            <a class="map-btn" href="dti-campus-map.html" target="_blank" rel="noopener" title="Open full screen" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">⛶</a>
+          </div>
+        </div>
+        <div class="map-embed" style="position:relative;width:100%;height:520px;border-radius:14px;overflow:hidden;border:1px solid rgba(0,0,0,.08);background:#f5f2ec;">
+          <iframe src="dti-campus-map.html" title="DTI Campus Map" loading="lazy" allowfullscreen
+                  style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+        </div>
+      </div>
+
+      <div class="card notif-card" id="notifications">
+        <div class="card-head">
+          <div><h3>Notifications & Reminders</h3><p>Stay up to date</p></div>
+          <button class="link-btn">Mark all read</button>
+        </div>
+        <ul class="notif-list" id="notifList">
+          <li>
+            <div class="n-icon wine"><svg viewBox="0 0 24 24"><path d="M3 11v2a2 2 0 0 0 2 2h2l7 4V5L7 9H5a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <div><div class="n-title">Midterm schedule published</div><div class="n-time">2 min ago</div></div>
+          </li>
+          <li>
+            <div class="n-icon green"><svg viewBox="0 0 24 24"><path d="M3 7h18l-2 12H5L3 7z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <div><div class="n-title">New product: Campus Hoodie 2026</div><div class="n-time">18 min ago</div></div>
+          </li>
+          <li>
+            <div class="n-icon gold"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v6l4 2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <div><div class="n-title">Library book due tomorrow</div><div class="n-time">1 hr ago</div></div>
+          </li>
+          <li>
+            <div class="n-icon dark"><svg viewBox="0 0 24 24"><path d="M12 22s-7-7.2-7-12a7 7 0 1 1 14 0c0 4.8-7 12-7 12z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+            <div><div class="n-title">Clinic hours updated</div><div class="n-time">3 hr ago</div></div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid-two" id="announcements">
+      <div class="card">
+        <div class="card-head">
+          <div><h3>Announcements</h3><p>Recent campus updates</p></div>
+          <button class="link-btn">View all</button>
+        </div>
+        <div class="ann-list">
+          <article class="ann">
+            <div class="ann-tag wine">Academic</div>
+            <h4>Midterm Examination Timetable</h4>
+            <p>The official midterm timetable for Semester 2 has been released. Please check your portal for venues.</p>
+            <div class="ann-date">Nov 12, 2026</div>
+          </article>
+          <article class="ann">
+            <div class="ann-tag green">Facility</div>
+            <h4>Library Extended Hours</h4>
+            <p>The Central Library will remain open until 11:00 PM during the exam period beginning next week.</p>
+            <div class="ann-date">Nov 10, 2026</div>
+          </article>
+          <article class="ann">
+            <div class="ann-tag gold">Event</div>
+            <h4>Annual Tech Fair 2026</h4>
+            <p>Join innovators and industry partners at the Main Auditorium — registration is open on the student portal.</p>
+            <div class="ann-date">Nov 08, 2026</div>
+          </article>
+        </div>
+      </div>
+
+      <div class="card" id="inventory">
+        <div class="card-head">
+          <div><h3>New Market Inventory</h3><p>Just added to the campus store</p></div>
+          <span class="pill">7 New</span>
+        </div>
+        <ul class="inv-list">
+          <li><div class="inv-name">Campus Hoodie 2026</div><div class="inv-meta"><span>Nov 12</span><span class="stock in">In Stock</span></div></li>
+          <li><div class="inv-name">Scientific Calculator</div><div class="inv-meta"><span>Nov 11</span><span class="stock in">In Stock</span></div></li>
+          <li><div class="inv-name">Engineering Notebook Pack</div><div class="inv-meta"><span>Nov 10</span><span class="stock low">Low Stock</span></div></li>
+          <li><div class="inv-name">Wireless Earbuds</div><div class="inv-meta"><span>Nov 09</span><span class="stock in">In Stock</span></div></li>
+          <li><div class="inv-name">Reusable Water Bottle</div><div class="inv-meta"><span>Nov 08</span><span class="stock out">Sold Out</span></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card" id="market">
+      <div class="card-head">
+        <div><h3>Campus Market</h3><p>Featured products available on campus</p></div>
+        <button class="link-btn">Browse all</button>
+      </div>
+      <div class="products">
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#7a1f2b,#3d0f16)"><span>👕</span></div>
+          <div class="p-body">
+            <div class="p-name">Campus Hoodie 2026</div>
+            <div class="p-row"><span class="price">₦12,500</span><span class="stock in">In Stock</span></div>
+          </div>
+        </article>
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#c9a24a,#8a6a24)"><span>📚</span></div>
+          <div class="p-body">
+            <div class="p-name">Engineering Notebook</div>
+            <div class="p-row"><span class="price">₦2,800</span><span class="stock low">Low Stock</span></div>
+          </div>
+        </article>
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#2e6b3a,#153b1e)"><span>🎧</span></div>
+          <div class="p-body">
+            <div class="p-name">Wireless Earbuds</div>
+            <div class="p-row"><span class="price">₦18,900</span><span class="stock in">In Stock</span></div>
+          </div>
+        </article>
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#1c1c1c,#3a3a3a)"><span>🧮</span></div>
+          <div class="p-body">
+            <div class="p-name">Scientific Calculator</div>
+            <div class="p-row"><span class="price">₦7,200</span><span class="stock in">In Stock</span></div>
+          </div>
+        </article>
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#7a1f2b,#c9a24a)"><span>💧</span></div>
+          <div class="p-body">
+            <div class="p-name">Reusable Water Bottle</div>
+            <div class="p-row"><span class="price">₦3,500</span><span class="stock out">Sold Out</span></div>
+          </div>
+        </article>
+        <article class="product">
+          <div class="p-img" style="background:linear-gradient(135deg,#2e6b3a,#c9a24a)"><span>🎒</span></div>
+          <div class="p-body">
+            <div class="p-name">Campus Backpack</div>
+            <div class="p-row"><span class="price">₦15,000</span><span class="stock in">In Stock</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="foot">© 2026 Smart Campus Digital Twin · Student Portal</footer>
+  </main>
+
+<script src="script.js"></script>
+<script type="module">
+  import { auth, db } from "./firebase-config.js";
+  import { signOut as fbSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const btnSignout = document.getElementById("btn-student-signout");
+  if (btnSignout) {
+    btnSignout.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await fbSignOut(auth);
+      window.location.href = "login-student.html";
+    });
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login-student.html";
+      return;
+    }
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      const displayName = data.displayName || user.email.split("@")[0];
+      const firstName = displayName.split(" ")[0];
+      
+      document.getElementById("student-sidebar-name").textContent = displayName;
+      document.getElementById("student-sidebar-id").textContent = "ID · " + user.uid.slice(0, 8).toUpperCase();
+      document.getElementById("student-topbar-name").textContent = firstName;
+      document.getElementById("student-welcome-name").textContent = firstName;
+    }
+  });
+
+  // Live Firestore listener for student announcements
+  const annContainer = document.querySelector("#announcements .ann-list");
+  if (annContainer) {
+    onSnapshot(collection(db, "announcements"), (snap) => {
+      let items = [];
+      snap.forEach(d => {
+        const data = d.data();
+        const role = data.targetRole || "all";
+        if (role === "student" || role === "all") {
+          items.push({ id: d.id, ...data });
+        }
+      });
+      if (items.length > 0) {
+        items.sort((a, b) => (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) - (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0));
+        annContainer.innerHTML = items.map(item => `
+          <article class="ann" style="border-left: 4px solid ${item.isEmergency ? '#ea580c' : '#722F37'};">
+            <div class="ann-tag ${item.isEmergency ? 'wine' : 'gold'}">${item.tag || item.author || 'CAMPUS'}</div>
+            <h4>${item.title || item.content || 'Announcement'}</h4>
+            <p>${item.body || item.content || ''}</p>
+            <div class="ann-date">${item.date || new Date().toISOString().split("T")[0]} · Live Firestore</div>
+          </article>
+        `).join("");
+      }
+    });
+  }
+
+  // Live Firestore listener for emergency alerts (instant push notification insertion)
+  try {
+    const notifList = document.getElementById("notifList");
+    onSnapshot(collection(db, "emergency_alerts"), (snap) => {
+      snap.docChanges().forEach(change => {
+        if (change.type === "added" && notifList) {
+          const alert = change.doc.data();
+          const li = document.createElement("li");
+          li.style.cssText = "background: rgba(234, 88, 12, 0.1); border: 1px solid #ea580c; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;";
+          li.innerHTML = `
+            <div class="n-icon wine" style="background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;border-radius:50%;width:32px;height:32px;">🚨</div>
+            <div>
+              <div class="n-title" style="color:#ea580c;font-weight:700;">${alert.title || 'EMERGENCY CAMPUS ALERT'}</div>
+              <div class="n-sub" style="font-size:12px;color:#333;">${alert.text || alert.body || 'Campus emergency broadcast issued.'}</div>
+              <div class="n-time" style="font-size:10px;color:#666;">JUST NOW · LIVE PUSH</div>
+            </div>
+          `;
+          notifList.prepend(li);
+        }
+      });
+    });
+  } catch(e) {}
+</script>
+</body>
+</html>

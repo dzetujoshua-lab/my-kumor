@@ -1,0 +1,4600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>DTI Campus Map Design &amp; Technology Institute, Ghana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+   DTI CAMPUS MAP  ·  Design System v5
+   ─────────────────────────────────────────────────────────
+   GOLD  #C8952A  → Academic · Active · Primary actions
+   WINE  #821E38  → Residential · Hostel · Planned
+   No mixing. Clean, purposeful separation.
+═══════════════════════════════════════════════════════════ */
+    :root {
+      --gold: #2563eb; /* Rebranded Primary Blue */
+      --gold-dk: #1e40af;
+      --gold-lt: #60a5fa;
+      --gold-xlt: #dbeafe;
+      --gold-tint: rgba(37, 99, 235, .10);
+      --gold-glow: rgba(37, 99, 235, .22);
+      --gold-ring: rgba(37, 99, 235, .30);
+
+      --wine: #0ea5e9; /* Rebranded Secondary Blue */
+      --wine-dk: #0369a1;
+      --wine-lt: #7dd3fc;
+      --wine-xlt: #e0f2fe;
+      --wine-tint: rgba(14, 165, 233, .09);
+      --wine-glow: rgba(14, 165, 233, .20);
+      --wine-ring: rgba(14, 165, 233, .28);
+
+      --bg: #FAF8F4;
+      --bg2: #F3EDE0;
+      --surface: #FFFFFF;
+      --s2: #F7F3EB;
+      --s3: #EDE7D8;
+      --s4: #E0D8C8;
+      --border: #DDD4C0;
+      --border2: #C8BCAA;
+
+      --ink: #1C1810;
+      --ink2: #3A3224;
+      --slate: #695E4E;
+      --muted: #978A78;
+      --dim: #BCB0A0;
+
+      --display: 'Playfair Display', Georgia, serif;
+      --ui: 'DM Sans', system-ui, sans-serif;
+
+      --r-xs: 3px;
+      --r-sm: 7px;
+      --r-md: 12px;
+      --r-lg: 18px;
+      --r-xl: 24px;
+      --r-full: 999px;
+      --ease: cubic-bezier(.16, 1, .3, 1);
+      --fast: 130ms;
+      --med: 220ms;
+      --slow: 340ms;
+
+      --sidebar-w: 360px;
+      --panel-w: 420px;
+
+      --sh-xs: 0 1px 3px rgba(28, 24, 16, .06);
+      --sh-sm: 0 2px 8px rgba(28, 24, 16, .09);
+      --sh-md: 0 4px 18px rgba(28, 24, 16, .12);
+      --sh-lg: 0 8px 36px rgba(28, 24, 16, .14);
+      --sh-xl: 0 16px 60px rgba(28, 24, 16, .16);
+    }
+
+    /* ── Reset ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--ui);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased
+    }
+
+    button,
+    input {
+      font: inherit;
+      color: inherit
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none
+    }
+
+    /* ── Loading ── */
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .4s var(--ease), visibility .4s
+    }
+
+    body.ready .loading {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none
+    }
+
+    .load-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      animation: fadeUp .5s var(--ease) both
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .load-badge {
+      width: 72px;
+      height: 72px;
+      background: var(--gold);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--display);
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 28px var(--gold-glow)
+    }
+
+    .load-title {
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -.2px;
+      text-align: center
+    }
+
+    .load-sub {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .load-bar {
+      width: 140px;
+      height: 2px;
+      background: var(--s3);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .load-fill {
+      height: 100%;
+      width: 0;
+      background: var(--gold);
+      border-radius: inherit;
+      animation: fill 1.1s var(--ease) .2s forwards
+    }
+
+    @keyframes fill {
+      to {
+        width: 100%
+      }
+    }
+
+    /* ── Shell ── */
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════ */
+    .sidebar {
+      position: relative;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow: hidden
+    }
+
+    /* Header */
+    .sb-top {
+      flex-shrink: 0;
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 16px
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--gold);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 3px 14px var(--gold-glow)
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 11px
+    }
+
+    .brand-name {
+      font-family: var(--display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25
+    }
+
+    .brand-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4
+    }
+
+    /* Search */
+    .srch-wrap {
+      position: relative
+    }
+
+    .srch-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--dim);
+      pointer-events: none;
+      width: 14px;
+      height: 14px
+    }
+
+    .srch-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 36px 0 36px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--ink);
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color var(--fast), box-shadow var(--fast)
+    }
+
+    .srch-input::placeholder {
+      color: var(--dim)
+    }
+
+    .srch-input:focus {
+      border-color: var(--gold-ring);
+      box-shadow: 0 0 0 3px var(--gold-tint);
+      background: var(--surface)
+    }
+
+    .srch-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--s3);
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer
+    }
+
+    .srch-input:not(:placeholder-shown)~.srch-clear {
+      display: flex
+    }
+
+    .srch-drop {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--sh-lg);
+      z-index: 700;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none
+    }
+
+    .srch-drop.open {
+      display: block
+    }
+
+    .sr-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background var(--fast);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .sr-item:last-child {
+      border: none
+    }
+
+    .sr-item:hover {
+      background: var(--s2)
+    }
+
+    .sr-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--s3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0
+    }
+
+    .sr-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink)
+    }
+
+    .sr-name mark {
+      background: var(--gold-xlt);
+      color: var(--gold-dk);
+      border-radius: 2px
+    }
+
+    .sr-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .sr-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--r-full);
+      background: var(--s3);
+      color: var(--muted);
+      flex-shrink: 0
+    }
+
+    .sr-empty {
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    /* Chips */
+    .chip-row {
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -20px;
+      padding: 10px 0 3px
+    }
+
+    .chip-row::-webkit-scrollbar {
+      display: none
+    }
+
+    .chip-inner {
+      padding: 0 20px;
+      display: flex;
+      gap: 6px
+    }
+
+    .chip {
+      flex-shrink: 0;
+      height: 28px;
+      padding: 0 13px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-full);
+      color: var(--slate);
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .01em;
+      transition: all var(--fast);
+      cursor: pointer
+    }
+
+    .chip:hover {
+      border-color: var(--gold-ring);
+      color: var(--ink);
+      background: var(--s3)
+    }
+
+    .chip.on {
+      background: var(--gold);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 10px var(--gold-glow)
+    }
+
+    /* Context bar */
+    .ctx-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      min-height: 42px
+    }
+
+    .ctx-txt {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .ctx-txt strong {
+      color: var(--slate);
+      font-weight: 700;
+      font-size: 12.5px
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 28px;
+      padding: 0 12px;
+      border-radius: var(--r-full);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--slate);
+      font-size: 11.5px;
+      font-weight: 600;
+      transition: all var(--fast);
+      cursor: pointer;
+      flex-shrink: 0
+    }
+
+    .back-btn:hover {
+      background: var(--s3);
+      color: var(--ink)
+    }
+
+    .back-btn.hidden {
+      display: none
+    }
+
+    /* Nav list */
+    .sb-list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      padding: 4px 0
+    }
+
+    .sb-list::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .sb-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px
+    }
+
+    /* Campus card */
+    .c-card {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      width: 100%;
+      padding: 13px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      text-align: left;
+      transition: background var(--fast)
+    }
+
+    .c-card:hover {
+      background: var(--s2)
+    }
+
+    .c-card.on {
+      background: var(--gold-tint);
+      border-left: 3px solid var(--gold)
+    }
+
+    .c-card.on .c-name {
+      color: var(--gold-dk)
+    }
+
+    .c-thumb {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--s3);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: border-color var(--fast)
+    }
+
+    .c-card.on .c-thumb {
+      border-color: var(--gold-ring)
+    }
+
+    .c-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .c-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .c-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -.1px
+    }
+
+    .c-role {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.4
+    }
+
+    .c-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    /* Building items */
+    .grp-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 14px 20px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .grp-count {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--r-full);
+      background: var(--s3);
+      color: var(--muted)
+    }
+
+    .b-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      width: 100%;
+      padding: 11px 20px;
+      text-align: left;
+      transition: background var(--fast);
+      border: none;
+      background: transparent;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer
+    }
+
+    .b-item:hover {
+      background: var(--s2)
+    }
+
+    .b-item.on {
+      background: var(--gold-tint);
+      border-left: 3px solid var(--gold)
+    }
+
+    .b-item.on .b-name {
+      color: var(--gold-dk)
+    }
+
+    .b-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .b-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .b-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      margin-bottom: 2px
+    }
+
+    .b-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      line-height: 1.4
+    }
+
+    .b-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--r-full);
+      background: var(--s3);
+      color: var(--slate);
+      border: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .empty-st {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6
+    }
+
+    /* Footer */
+    .sb-foot {
+      flex-shrink: 0;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--s2)
+    }
+
+    .foot-lbl {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--slate)
+    }
+
+    .foot-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold)
+    }
+
+    .ico-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r-sm);
+      color: var(--muted);
+      transition: all var(--fast);
+      border: 1.5px solid transparent;
+      cursor: pointer
+    }
+
+    .ico-btn:hover {
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--border)
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   MAP
+═══════════════════════════════════════════════════════════ */
+    .map-stage {
+      position: relative;
+      overflow: visible;
+      background: #ECE4D3
+    }
+
+    #map {
+      width: 100%;
+      height: 100%
+    }
+
+    .leaflet-container {
+      background: #ECE4D3 !important;
+      font-family: var(--ui) !important
+    }
+
+    .leaflet-control-zoom {
+      display: none
+    }
+
+    .leaflet-control-attribution {
+      font-size: 9px !important;
+      background: rgba(255, 255, 255, .75) !important;
+      backdrop-filter: blur(8px);
+      border: none !important;
+      border-radius: 6px 0 0 0 !important;
+      padding: 2px 10px !important;
+      color: var(--muted) !important
+    }
+
+    /* Map controls */
+    .map-ctrl {
+      position: absolute;
+      bottom: 28px;
+      right: 14px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .map-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      box-shadow: var(--sh-sm);
+      color: var(--slate);
+      font-size: 18px;
+      font-weight: 300;
+      line-height: 1;
+      transition: all var(--fast);
+      cursor: pointer
+    }
+
+    .map-btn:hover {
+      color: var(--ink);
+      box-shadow: var(--sh-md);
+      border-color: var(--border2)
+    }
+
+    .map-btn.on {
+      background: var(--gold);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 12px var(--gold-glow)
+    }
+
+    .map-btn svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block
+    }
+
+    /* View pill */
+    .view-pill {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 16px;
+      border-radius: var(--r-full);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      box-shadow: var(--sh-sm);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--slate);
+      white-space: nowrap
+    }
+
+    .view-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0
+    }
+
+    .mob-toggle {
+      display: none;
+      position: fixed;
+      top: 13px;
+      left: 13px;
+      z-index: 500;
+      width: 42px;
+      height: 42px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      box-shadow: var(--sh-md);
+      color: var(--ink);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background var(--fast), color var(--fast)
+    }
+
+    .mob-toggle:hover {
+      background: var(--s2);
+      color: var(--gold)
+    }
+
+    /* Sidebar overlay (mobile) */
+    .mob-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 299;
+      background: rgba(28, 24, 16, .45);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--slow) var(--ease)
+    }
+
+    .mob-overlay.open {
+      opacity: 1;
+      pointer-events: auto
+    }
+
+    @media(max-width:768px) {
+      .mob-overlay {
+        display: block
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   MARKERS
+═══════════════════════════════════════════════════════════ */
+    .dti-mk {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform var(--fast) var(--ease);
+      will-change: transform
+    }
+
+    .dti-mk:hover {
+      transform: scale(1.12);
+      z-index: 9999 !important
+    }
+
+    .dti-mk.sel {
+      transform: scale(1.2);
+      z-index: 9999 !important
+    }
+
+    .mk-pulse {
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0;
+      pointer-events: none;
+      animation: pulse 3s ease-out infinite
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(.3);
+        opacity: .25
+      }
+
+      100% {
+        transform: scale(2.2);
+        opacity: 0
+      }
+    }
+
+    .campus-tip {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: var(--ui);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: var(--sh-sm);
+      white-space: nowrap
+    }
+
+    .campus-tip.planned {
+      border-color: var(--wine-ring);
+      color: var(--wine)
+    }
+
+    .leaflet-tooltip {
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important
+    }
+
+    .leaflet-tooltip-top::before,
+    .leaflet-tooltip-bottom::before,
+    .leaflet-tooltip-left::before,
+    .leaflet-tooltip-right::before {
+      display: none !important
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   INFO PANEL  —  FIXED, never clipped
+═══════════════════════════════════════════════════════════ */
+    .info-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: var(--panel-w);
+      background: var(--surface);
+      border-left: 1.5px solid var(--border);
+      box-shadow: -4px 0 36px rgba(28, 24, 16, .13);
+      display: flex;
+      flex-direction: column;
+      z-index: 600;
+      transform: translateX(100%);
+      transition: transform var(--slow) var(--ease);
+      overflow: hidden;
+    }
+
+    .info-panel.open {
+      transform: translateX(0)
+    }
+
+    /* Stripe: gold = academic, wine = residential */
+    .p-stripe {
+      height: 4px;
+      flex-shrink: 0;
+      background: var(--gold);
+      transition: background var(--med)
+    }
+
+    .p-stripe.wine {
+      background: var(--wine)
+    }
+
+    .p-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(6px);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      transition: all var(--fast);
+      cursor: pointer
+    }
+
+    .p-close:hover {
+      color: var(--ink);
+      background: var(--s2)
+    }
+
+    /* Hero */
+    .p-hero {
+      flex-shrink: 0;
+      height: 196px;
+      overflow: hidden;
+      position: relative;
+      background: var(--s3)
+    }
+
+    .p-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .55s var(--ease)
+    }
+
+    .p-hero:hover img {
+      transform: scale(1.04)
+    }
+
+    .p-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(28, 24, 16, .5) 0%, transparent 52%)
+    }
+
+    .p-hero-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 3px 9px;
+      border-radius: var(--r-full);
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #fff;
+      background: rgba(28, 24, 16, .42);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, .2)
+    }
+
+    /* Placeholder hero */
+    .p-hero-ph {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: var(--s3)
+    }
+
+    .p-hero-ph span {
+      font-size: 42px
+    }
+
+    .p-hero-ph small {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--dim)
+    }
+
+    /* Head */
+    .p-head {
+      flex-shrink: 0;
+      padding: 20px 22px 16px;
+      border-bottom: 1.5px solid var(--border)
+    }
+
+    .p-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+      display: block;
+      transition: color var(--med)
+    }
+
+    .p-eyebrow.wine {
+      color: var(--wine)
+    }
+
+    .p-title {
+      font-family: var(--display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      line-height: 1.25;
+      color: var(--ink);
+      padding-right: 40px;
+      margin-bottom: 5px
+    }
+
+    .p-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.5
+    }
+
+    .p-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .p-tag {
+      padding: 3px 10px;
+      border-radius: var(--r-full);
+      font-size: 10.5px;
+      font-weight: 600;
+      background: var(--s2);
+      color: var(--muted);
+      border: 1.5px solid var(--border)
+    }
+
+    .p-tag.gold {
+      background: var(--gold-tint);
+      color: var(--gold-dk);
+      border-color: var(--gold-ring)
+    }
+
+    .p-tag.wine {
+      background: var(--wine-tint);
+      color: var(--wine);
+      border-color: var(--wine-ring)
+    }
+
+    /* Body */
+    .p-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 22px 32px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 22px
+    }
+
+    .p-body::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .p-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px
+    }
+
+    .p-desc {
+      font-size: 14px;
+      line-height: 1.78;
+      color: var(--slate)
+    }
+
+    .sec-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid var(--border);
+      margin-bottom: 13px
+    }
+
+    /* Gallery */
+    .gallery {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -22px;
+      padding: 0 22px
+    }
+
+    .gallery::-webkit-scrollbar {
+      display: none
+    }
+
+    .g-item {
+      flex-shrink: 0;
+      width: 134px;
+      height: 90px;
+      border-radius: 11px;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      position: relative;
+      background: var(--s3);
+      transition: transform var(--fast) var(--ease), box-shadow var(--fast)
+    }
+
+    .g-item:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--sh-md)
+    }
+
+    .g-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .45s var(--ease)
+    }
+
+    .g-item:hover img {
+      transform: scale(1.07)
+    }
+
+    .g-item-ph {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px
+    }
+
+    .g-item-ph span {
+      font-size: 24px
+    }
+
+    .g-item-ph small {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--dim)
+    }
+
+    .g-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 5px 8px;
+      background: linear-gradient(to top, rgba(28, 24, 16, .65), transparent);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 600
+    }
+
+    .g-item.ph {
+      cursor: default
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px
+    }
+
+    .stat-card {
+      padding: 14px 15px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: 11px
+    }
+
+    .stat-val {
+      font-family: var(--display);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1
+    }
+
+    .stat-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 4px
+    }
+
+    /* Highlights */
+    .hl-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .hl-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      font-size: 13.5px;
+      color: var(--slate);
+      line-height: 1.65
+    }
+
+    .hl-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 8px
+    }
+
+    .hl-list li.wine::before {
+      background: var(--wine)
+    }
+
+    /* Timeline */
+    .tl {
+      display: flex;
+      flex-direction: column;
+      position: relative
+    }
+
+    .tl::before {
+      content: '';
+      position: absolute;
+      left: 27px;
+      top: 10px;
+      bottom: 10px;
+      width: 1.5px;
+      background: var(--border)
+    }
+
+    .tl-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 8px 0
+    }
+
+    .tl-yr {
+      flex-shrink: 0;
+      width: 44px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      text-align: right;
+      padding-top: 2px;
+      font-family: var(--display)
+    }
+
+    .tl-dot {
+      flex-shrink: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid var(--surface);
+      box-shadow: 0 0 0 1.5px var(--gold);
+      margin-top: 4px;
+      z-index: 1
+    }
+
+    .tl-text {
+      font-size: 13px;
+      color: var(--slate);
+      line-height: 1.6
+    }
+
+    /* Facilities */
+    .fac-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .fac-chip {
+      padding: 5px 13px;
+      border-radius: var(--r-full);
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--slate)
+    }
+
+    /* Coords */
+    .coord-row {
+      display: flex;
+      gap: 8px
+    }
+
+    .coord-cell {
+      flex: 1;
+      padding: 11px 13px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px
+    }
+
+    .coord-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 3px
+    }
+
+    .coord-val {
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+      color: var(--slate)
+    }
+
+    /* Focus button */
+    .focus-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 46px;
+      background: var(--gold);
+      color: #fff;
+      border-radius: var(--r-sm);
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      transition: all var(--fast) var(--ease);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 10px var(--gold-glow)
+    }
+
+    .focus-btn:hover {
+      background: var(--gold-dk);
+      box-shadow: 0 5px 20px var(--gold-glow);
+      transform: translateY(-1px)
+    }
+
+    .focus-btn:active {
+      transform: none
+    }
+
+    .focus-btn.wine {
+      background: var(--wine);
+      box-shadow: 0 2px 10px var(--wine-glow)
+    }
+
+    .focus-btn.wine:hover {
+      background: var(--wine-dk);
+      box-shadow: 0 5px 20px var(--wine-glow)
+    }
+
+    .focus-btn svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      display: block
+    }
+
+    /* Lightbox */
+    .lb {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: rgba(28, 24, 16, .92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .22s, visibility .22s;
+      cursor: pointer
+    }
+
+    .lb.open {
+      opacity: 1;
+      visibility: visible
+    }
+
+    .lb img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 10px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+      pointer-events: none
+    }
+
+    .lb-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 38px;
+      height: 38px;
+      background: rgba(255, 255, 255, .14);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, .2)
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   DIRECTIONS — FAB BUTTON (fixed to viewport)
+═══════════════════════════════════════════════════════════ */
+    .dir-fab {
+      position: fixed;
+      bottom: 32px;
+      left: calc(var(--sidebar-w) + 16px);
+      z-index: 450;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      height: 44px;
+      padding: 0 20px;
+      background: var(--gold);
+      color: #fff;
+      border-radius: var(--r-full);
+      border: none;
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      box-shadow: 0 4px 22px var(--gold-glow), 0 2px 8px rgba(28, 24, 16, .18);
+      transition: all var(--fast) var(--ease);
+    }
+
+    .dir-fab:hover {
+      background: var(--gold-dk);
+      box-shadow: 0 8px 28px var(--gold-glow);
+      transform: translateY(-2px)
+    }
+
+    .dir-fab.active {
+      background: var(--gold-dk)
+    }
+
+    .dir-fab svg {
+      flex-shrink: 0;
+      width: 15px;
+      height: 15px
+    }
+
+    @media(max-width:768px) {
+      .dir-fab {
+        left: 16px;
+        bottom: 24px
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   DIRECTIONS PANEL (fixed, slides up from bottom)
+═══════════════════════════════════════════════════════════ */
+    .dir-panel {
+      position: fixed;
+      bottom: 0;
+      left: var(--sidebar-w);
+      right: 0;
+      z-index: 400;
+      background: var(--surface);
+      border-top: 1.5px solid var(--border);
+      border-left: 1.5px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -6px 40px rgba(28, 24, 16, .15);
+      transform: translateY(100%);
+      transition: transform var(--slow) var(--ease);
+      max-height: 88dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .dir-panel.open {
+      transform: translateY(0);
+      pointer-events: all
+    }
+
+    @media(max-width:768px) {
+      .dir-panel {
+        left: 0;
+        border-radius: 22px 22px 0 0
+      }
+    }
+
+    /* drag handle */
+    .dir-drag {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 4px;
+      cursor: ns-resize
+    }
+
+    .dir-drag-bar {
+      width: 40px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--border)
+    }
+
+    /* header */
+    .dir-hd {
+      flex-shrink: 0;
+      padding: 0 20px 14px;
+      border-bottom: 1.5px solid var(--border)
+    }
+
+    .dir-hd-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px
+    }
+
+    .dir-hd-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .dir-hd-icon svg {
+      stroke: #fff;
+      fill: none;
+      width: 17px;
+      height: 17px;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    .dir-hd-title {
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -.2px;
+      flex: 1
+    }
+
+    .dir-hd-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--s3);
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--fast);
+      flex-shrink: 0
+    }
+
+    .dir-hd-close:hover {
+      background: var(--s4);
+      color: var(--ink)
+    }
+
+    /* From / To inputs */
+    .dir-fields {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 44px
+    }
+
+    .dir-connector {
+      position: absolute;
+      left: 18px;
+      top: 50px;
+      width: 2px;
+      height: 28px;
+      background: repeating-linear-gradient(to bottom, var(--gold) 0, var(--gold) 5px, transparent 5px, transparent 9px)
+    }
+
+    .dir-field {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .dir-dot {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      z-index: 1
+    }
+
+    .dir-dot.a {
+      background: var(--gold);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--gold-glow)
+    }
+
+    .dir-dot.b {
+      background: var(--wine);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--wine-glow)
+    }
+
+    .dir-sel {
+      flex: 1;
+      height: 44px;
+      padding: 0 14px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--ink);
+      font-family: var(--ui);
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--fast), box-shadow var(--fast), background var(--fast);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23BCB0A0' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 11px;
+      padding-right: 32px;
+    }
+
+    .dir-sel:focus {
+      border-color: var(--gold-ring);
+      box-shadow: 0 0 0 3px var(--gold-tint);
+      background-color: var(--surface)
+    }
+
+    .dir-swap-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--slate);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--sh-sm);
+      transition: all var(--fast);
+      flex-shrink: 0;
+    }
+
+    .dir-swap-btn:hover {
+      background: var(--gold-tint);
+      border-color: var(--gold-ring);
+      color: var(--gold-dk)
+    }
+
+    .dir-swap-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    /* Go button */
+    .dir-go {
+      width: 100%;
+      height: 48px;
+      margin-top: 12px;
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: var(--r-sm);
+      font-family: var(--ui);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      box-shadow: 0 3px 14px var(--gold-glow);
+      transition: all var(--fast) var(--ease);
+    }
+
+    .dir-go:hover:not(:disabled) {
+      background: var(--gold-dk);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px var(--gold-glow)
+    }
+
+    .dir-go:disabled {
+      background: var(--s4);
+      color: var(--muted);
+      box-shadow: none;
+      cursor: not-allowed
+    }
+
+    .dir-go svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      width: 14px;
+      height: 14px
+    }
+
+    /* AI ask */
+    .dir-ai-sep {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px
+    }
+
+    .dir-ai-sep-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border)
+    }
+
+    .dir-ai-sep-txt {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      white-space: nowrap
+    }
+
+    .dir-ai-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .dir-ai-inp {
+      flex: 1;
+      height: 44px;
+      padding: 0 14px;
+      resize: none;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--ink);
+      font-family: var(--ui);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--fast), box-shadow var(--fast);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .dir-ai-inp:focus {
+      border-color: var(--gold-ring);
+      box-shadow: 0 0 0 3px var(--gold-tint);
+      background: var(--surface)
+    }
+
+    .dir-ai-inp::placeholder {
+      color: var(--dim)
+    }
+
+    .dir-ai-send {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--r-sm);
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--fast);
+    }
+
+    .dir-ai-send:hover:not(:disabled) {
+      background: var(--ink2);
+      transform: scale(1.04)
+    }
+
+    .dir-ai-send:disabled {
+      background: var(--dim);
+      cursor: not-allowed;
+      transform: none
+    }
+
+    .dir-ai-send svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round
+    }
+
+    @keyframes dir-spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .dir-ai-send.busy svg {
+      animation: dir-spin .7s linear infinite
+    }
+
+    /* scrollable results area */
+    .dir-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .dir-results::-webkit-scrollbar {
+      width: 3px
+    }
+
+    .dir-results::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px
+    }
+
+    /* empty state */
+    .dir-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    .dir-empty-icon {
+      font-size: 36px;
+      line-height: 1
+    }
+
+    .dir-empty-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink)
+    }
+
+    .dir-empty-sub {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 280px
+    }
+
+    /* route summary banner */
+    .dir-banner {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: linear-gradient(135deg, var(--gold-tint) 0%, var(--wine-tint) 100%);
+      border: 1.5px solid var(--gold-ring);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+
+    .dir-ban-cell {
+      flex: 1;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px
+    }
+
+    .dir-ban-cell+.dir-ban-cell {
+      border-left: 1px solid var(--gold-ring)
+    }
+
+    .dir-ban-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .dir-ban-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .dir-ban-val.gold {
+      color: var(--gold-dk)
+    }
+
+    .dir-ban-val.wine {
+      color: var(--wine)
+    }
+
+    /* step list */
+    .dir-steps-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid var(--border)
+    }
+
+    .dir-steps {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-left: 2px
+    }
+
+    .dir-steps::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 28px;
+      height: calc(100% - 56px);
+      width: 2px;
+      background: linear-gradient(to bottom, var(--gold) 0%, var(--wine) 100%);
+      border-radius: 2px;
+    }
+
+    .dir-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0
+    }
+
+    .dir-step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 1;
+      background: var(--surface);
+      border: 2.5px solid var(--gold-ring);
+      color: var(--gold-dk);
+      transition: all var(--fast);
+    }
+
+    .dir-step:first-child .dir-step-num {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #fff
+    }
+
+    .dir-step:last-child .dir-step-num {
+      background: var(--wine);
+      border-color: var(--wine);
+      color: #fff
+    }
+
+    .dir-step-body {
+      flex: 1;
+      padding-top: 6px
+    }
+
+    .dir-step-action {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
+      margin-bottom: 3px
+    }
+
+    .dir-step-detail {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55
+    }
+
+    .dir-step-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 5px;
+      padding: 3px 9px;
+      border-radius: var(--r-full);
+      background: var(--gold-xlt);
+      color: var(--gold-dk);
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+
+    /* AI response card */
+    .dir-ai-card {
+      padding: 14px 16px;
+      background: var(--s2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      font-size: 13.5px;
+      line-height: 1.75;
+      color: var(--slate);
+    }
+
+    .dir-ai-card strong {
+      color: var(--gold-dk)
+    }
+
+    /* clear */
+    .dir-clear {
+      width: 100%;
+      height: 40px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      border-radius: var(--r-sm);
+      font-family: var(--ui);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--fast);
+    }
+
+    .dir-clear:hover {
+      background: var(--s2);
+      color: var(--slate);
+      border-color: var(--border2)
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+   MOBILE
+═══════════════════════════════════════════════════════════ */
+@media(max-width:768px) {
+       .shell {
+         grid-template-columns: 1fr
+       }
+
+       .sidebar {
+         position: fixed;
+         top: 0;
+         left: 0;
+         bottom: 0;
+         width: 320px;
+         max-width: 90vw;
+         transform: translateX(-100%);
+         transition: transform var(--slow) var(--ease);
+         z-index: 300
+       }
+
+       .sidebar.open {
+         transform: none
+       }
+
+       .mob-toggle {
+         display: flex
+       }
+
+       .info-panel {
+         width: 92vw;
+         max-width: 420px
+       }
+
+       .view-pill {
+         left: auto;
+         right: 14px;
+         transform: none;
+         top: auto;
+         bottom: 18px
+       }
+
+       .p-hero {
+         height: 160px
+       }
+     }
+
+     /* ═══════════════════════════════════════════════════════════
+        GLASSMORPHISM DIRECTIONS MODAL
+     ═══════════════════════════════════════════════════════════ */
+     .modal-overlay {
+       position: fixed;
+       top: 0; left: 0;
+       width: 100%; height: 100%;
+       background: rgba(28, 24, 16, 0.6);
+       backdrop-filter: blur(10px);
+       -webkit-backdrop-filter: blur(10px);
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       z-index: 9999;
+       opacity: 0;
+       pointer-events: none;
+       transition: opacity 0.35s cubic-bezier(.16,1,.3,1);
+     }
+     .modal-overlay.active {
+       opacity: 1;
+       pointer-events: auto;
+     }
+     .glass-modal {
+       position: relative;
+       background: linear-gradient(145deg, rgba(40,34,22,0.92) 0%, rgba(28,24,16,0.96) 100%);
+       backdrop-filter: blur(28px);
+       -webkit-backdrop-filter: blur(28px);
+       border: 1px solid rgba(200,149,42,0.28);
+       border-radius: 22px;
+       padding: 32px 28px 28px;
+       width: 92%;
+       max-width: 460px;
+       box-shadow: 0 24px 64px rgba(0,0,0,0.55), inset 0 1px 0 rgba(200,149,42,0.15);
+       color: #fff;
+       transform: translateY(28px) scale(0.95);
+       transition: transform 0.38s cubic-bezier(.16,1,.3,1), opacity 0.38s cubic-bezier(.16,1,.3,1);
+       opacity: 0;
+     }
+     .modal-overlay.active .glass-modal {
+       transform: translateY(0) scale(1);
+       opacity: 1;
+     }
+     .glass-modal::before {
+       content: '';
+       position: absolute;
+       top: 0; left: 28px; right: 28px;
+       height: 3px;
+       background: linear-gradient(90deg, transparent, var(--gold), var(--gold-lt), var(--gold), transparent);
+       border-radius: 0 0 3px 3px;
+     }
+     .modal-close-x {
+       position: absolute;
+       top: 14px; right: 14px;
+       width: 30px; height: 30px;
+       border-radius: 50%;
+       background: rgba(255,255,255,0.08);
+       border: 1px solid rgba(255,255,255,0.14);
+       color: rgba(255,255,255,0.6);
+       font-size: 13px;
+       display: flex; align-items: center; justify-content: center;
+       cursor: pointer;
+       transition: all 0.2s;
+       line-height: 1;
+     }
+     .modal-close-x:hover { background: rgba(255,255,255,0.16); color: #fff; }
+     .modal-voice-banner {
+       display: flex;
+       align-items: flex-start;
+       gap: 12px;
+       background: rgba(200,149,42,0.1);
+       border: 1px solid rgba(200,149,42,0.28);
+       border-radius: 13px;
+       padding: 13px 14px;
+       margin-bottom: 22px;
+     }
+     .modal-voice-avatar {
+       flex-shrink: 0;
+       width: 40px; height: 40px;
+       border-radius: 50%;
+       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%);
+       display: flex; align-items: center; justify-content: center;
+       font-size: 18px;
+       box-shadow: 0 3px 14px rgba(200,149,42,0.45);
+       animation: pulse-avatar 2.5s ease-in-out infinite;
+     }
+     @keyframes pulse-avatar {
+       0%, 100% { box-shadow: 0 3px 14px rgba(200,149,42,0.4); }
+       50% { box-shadow: 0 3px 24px rgba(200,149,42,0.7); }
+     }
+     .modal-voice-text {
+       font-size: 12.5px;
+       line-height: 1.65;
+       color: rgba(255,255,255,0.82);
+     }
+     .modal-voice-text strong {
+       color: var(--gold-lt);
+       display: block;
+       font-size: 10px;
+       font-weight: 700;
+       letter-spacing: 0.1em;
+       text-transform: uppercase;
+       margin-bottom: 4px;
+     }
+     .audio-wave {
+       display: inline-flex;
+       align-items: center;
+       gap: 2px;
+       margin-left: 5px;
+       vertical-align: middle;
+     }
+     .audio-wave span {
+       display: inline-block;
+       width: 3px;
+       background: var(--gold-lt);
+       border-radius: 2px;
+       animation: wave-bar 1.1s ease-in-out infinite;
+     }
+     .audio-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+     .audio-wave span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+     .audio-wave span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+     .audio-wave span:nth-child(4) { height: 6px; animation-delay: 0.45s; }
+     .audio-wave.stopped span { animation: none; height: 4px !important; opacity: 0.35; }
+     @keyframes wave-bar {
+       0%, 100% { transform: scaleY(0.5); opacity: 0.55; }
+       50% { transform: scaleY(1); opacity: 1; }
+     }
+     .glass-modal h3 {
+       margin: 0 0 20px 0;
+       font-family: 'Playfair Display', serif;
+       color: #fff;
+       font-size: 1.35rem;
+       font-weight: 700;
+       letter-spacing: -0.2px;
+       display: flex;
+       align-items: center;
+       gap: 10px;
+     }
+     .glass-modal h3 .modal-icon {
+       width: 36px; height: 36px;
+       background: var(--gold);
+       border-radius: 9px;
+       display: flex; align-items: center; justify-content: center;
+       font-size: 16px;
+       box-shadow: 0 3px 12px rgba(200,149,42,0.4);
+       flex-shrink: 0;
+     }
+     .input-group {
+       margin-bottom: 16px;
+       position: relative;
+     }
+     .input-group label {
+       display: block;
+       font-size: 10.5px;
+       font-weight: 700;
+       letter-spacing: 0.1em;
+       text-transform: uppercase;
+       margin-bottom: 7px;
+       color: rgba(255,255,255,0.5);
+       font-family: 'DM Sans', sans-serif;
+     }
+     .glass-input {
+       width: 100%;
+       padding: 13px 16px;
+       background: rgba(255, 255, 255, 0.07);
+       border: 1.5px solid rgba(255, 255, 255, 0.14);
+       border-radius: 10px;
+       color: #fff;
+       font-family: 'DM Sans', sans-serif;
+       font-size: 14px;
+       outline: none;
+       box-sizing: border-box;
+       transition: all 0.22s ease;
+     }
+     .glass-input::placeholder { color: rgba(255,255,255,0.28); }
+     .glass-input:focus {
+       border-color: var(--gold);
+       background: rgba(200,149,42,0.08);
+       box-shadow: 0 0 0 3px rgba(200,149,42,0.18);
+     }
+     .glass-input[readonly] { opacity: 0.7; cursor: default; }
+     .location-status {
+       font-size: 11px;
+       color: var(--gold-lt);
+       margin-top: 6px;
+       display: flex;
+       align-items: center;
+       gap: 5px;
+     }
+     .modal-dest-drop {
+       position: absolute;
+       top: calc(100% + 4px);
+       left: 0; right: 0;
+       background: rgba(22,18,10,0.96);
+       backdrop-filter: blur(24px);
+       border: 1px solid rgba(200,149,42,0.28);
+       border-radius: 12px;
+       overflow: hidden;
+       z-index: 10001;
+       box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+       display: none;
+       max-height: 220px;
+       overflow-y: auto;
+     }
+     .modal-dest-drop.open { display: block; }
+     .modal-dest-item {
+       display: flex;
+       align-items: center;
+       gap: 10px;
+       padding: 10px 14px;
+       cursor: pointer;
+       transition: background 0.15s;
+       border-bottom: 1px solid rgba(255,255,255,0.05);
+     }
+     .modal-dest-item:last-child { border-bottom: none; }
+     .modal-dest-item:hover, .modal-dest-item.focused { background: rgba(200,149,42,0.18); }
+     .modal-dest-item-icon { font-size: 16px; flex-shrink: 0; width: 26px; text-align: center; }
+     .modal-dest-item-body { flex: 1; min-width: 0; }
+     .modal-dest-item-name {
+       font-size: 13px; font-weight: 600; color: #fff;
+       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+     }
+     .modal-dest-item-name mark {
+       background: rgba(200,149,42,0.3);
+       color: var(--gold-lt);
+       border-radius: 2px; padding: 0 1px;
+     }
+     .modal-dest-item-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+     .modal-dest-badge {
+       font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+       padding: 2px 7px; border-radius: 99px;
+       background: rgba(200,149,42,0.18); color: var(--gold-lt);
+       border: 1px solid rgba(200,149,42,0.28); flex-shrink: 0;
+     }
+     .modal-actions {
+       display: flex;
+       justify-content: flex-end;
+       gap: 10px;
+       margin-top: 22px;
+     }
+     .btn-glass {
+       padding: 11px 22px;
+       border-radius: 9px;
+       border: none;
+       cursor: pointer;
+       font-family: 'DM Sans', sans-serif;
+       font-size: 13.5px;
+       font-weight: 600;
+       transition: all 0.2s ease;
+       letter-spacing: 0.01em;
+     }
+     .btn-glass.secondary {
+       background: transparent;
+       color: rgba(255,255,255,0.65);
+       border: 1.5px solid rgba(255, 255, 255, 0.18);
+     }
+     .btn-glass.secondary:hover { background: rgba(255,255,255,0.08); color: #fff; }
+     .btn-glass.primary {
+       background: var(--gold);
+       color: #1C1810;
+       font-weight: 700;
+       box-shadow: 0 4px 16px rgba(200,149,42,0.35);
+     }
+     .btn-glass.primary:hover {
+       background: var(--gold-lt);
+       box-shadow: 0 6px 22px rgba(200,149,42,0.5);
+       transform: translateY(-1px);
+     }
+     .btn-glass.primary:active { transform: none; }
+
+    /* ═══════════════════════════════════════════════════════════
+       DARK MODE
+    ═══════════════════════════════════════════════════════════ */
+    body.dark {
+      --bg:       #0F0D0A;
+      --bg2:      #161310;
+      --surface:  #1C1810;
+      --s2:       #221E16;
+      --s3:       #2A241A;
+      --s4:       #332C1F;
+      --border:   #3A3228;
+      --border2:  #4A4034;
+
+      --ink:   #F0EBE0;
+      --ink2:  #D8D0C0;
+      --slate: #B8AE9C;
+      --muted: #8A8070;
+      --dim:   #5C5448;
+
+      --gold-tint: rgba(200,149,42,.15);
+      --gold-glow: rgba(200,149,42,.28);
+      --gold-ring: rgba(200,149,42,.38);
+      --gold-xlt:  rgba(200,149,42,.18);
+
+      --sh-xs: 0 1px 3px  rgba(0,0,0,.25);
+      --sh-sm: 0 2px 8px  rgba(0,0,0,.35);
+      --sh-md: 0 4px 18px rgba(0,0,0,.45);
+      --sh-lg: 0 8px 36px rgba(0,0,0,.55);
+      --sh-xl: 0 16px 60px rgba(0,0,0,.65);
+    }
+
+    body.dark .loading        { background: var(--surface) }
+    body.dark .sidebar        { background: var(--surface); border-color: var(--border) }
+    body.dark .sb-foot        { background: var(--s2) }
+    body.dark .ctx-bar        { background: var(--bg2) }
+    body.dark .srch-input     { background: var(--s2); border-color: var(--border); color: var(--ink) }
+    body.dark .srch-input:focus { background: var(--surface) }
+    body.dark .srch-drop      { background: var(--surface); border-color: var(--border) }
+    body.dark .sr-item:hover  { background: var(--s2) }
+    body.dark .chip           { background: var(--s2); border-color: var(--border); color: var(--slate) }
+    body.dark .chip:hover     { background: var(--s3) }
+    body.dark .c-card:hover   { background: var(--s2) }
+    body.dark .c-card.on      { background: var(--gold-tint) }
+    body.dark .b-item:hover   { background: var(--s2) }
+    body.dark .b-item.on      { background: var(--gold-tint) }
+    body.dark .back-btn       { background: var(--surface); border-color: var(--border) }
+    body.dark .back-btn:hover { background: var(--s3) }
+    body.dark .c-thumb        { background: var(--s3); border-color: var(--border) }
+    body.dark .map-btn        { background: var(--surface); border-color: var(--border) }
+    body.dark .map-btn:hover  { background: var(--s2) }
+    body.dark .view-pill      { background: var(--surface); border-color: var(--border) }
+    body.dark .info-panel     { background: var(--surface); border-color: var(--border) }
+    body.dark .p-head         { border-color: var(--border) }
+    body.dark .p-close        { background: rgba(28,24,16,.9); border-color: var(--border) }
+    body.dark .p-hero-ph      { background: var(--s3) }
+    body.dark .stat-card      { background: var(--s2); border-color: var(--border) }
+    body.dark .fac-chip       { background: var(--s2); border-color: var(--border) }
+    body.dark .coord-cell     { background: var(--s2); border-color: var(--border) }
+    body.dark .p-tag          { background: var(--s2); border-color: var(--border) }
+    body.dark .dir-panel      { background: var(--surface); border-color: var(--border) }
+    body.dark .dir-sel        { background: var(--s2); border-color: var(--border); color: var(--ink) }
+    body.dark .dir-sel:focus  { background: var(--surface) }
+    body.dark .dir-ai-inp     { background: var(--s2); border-color: var(--border); color: var(--ink) }
+    body.dark .dir-ai-inp:focus { background: var(--surface) }
+    body.dark .dir-ai-card    { background: var(--s2); border-color: var(--border) }
+    body.dark .dir-clear      { border-color: var(--border) }
+    body.dark .dir-clear:hover { background: var(--s2) }
+    body.dark .dir-hd-close   { background: var(--s3) }
+    body.dark .dir-swap-btn   { background: var(--surface); border-color: var(--border) }
+    body.dark .mob-toggle     { background: var(--surface); border-color: var(--border); color: var(--ink) }
+    body.dark .ico-btn:hover  { background: var(--surface); border-color: var(--border) }
+    body.dark .leaflet-container { background: #1A1A12 !important }
+    body.dark .leaflet-control-attribution { background: rgba(28,24,16,.85) !important; color: var(--muted) !important }
+    body.dark .campus-tip     { background: var(--surface); border-color: var(--border); color: var(--ink) }
+
+    /* Dark mode theme button icon swap */
+    body:not(.dark) #themeBtnMoon { display: block }
+    body:not(.dark) #themeBtnSun  { display: none }
+    body.dark #themeBtnMoon       { display: none }
+    body.dark #themeBtnSun        { display: block }
+
+    /* ═══════════════════════════════════════════════════════════
+       SNAPCHAT-STYLE DARK MODE GLOW
+    ═══════════════════════════════════════════════════════════ */
+    body.dark .brand-logo {
+      box-shadow: 0 0 18px rgba(200,149,42,.55), 0 0 40px rgba(200,149,42,.25), 0 3px 14px rgba(200,149,42,.4);
+    }
+    body.dark .sidebar {
+      box-shadow: 4px 0 32px rgba(0,0,0,.6), inset -1px 0 0 rgba(200,149,42,.08);
+    }
+    body.dark .mob-toggle {
+      box-shadow: 0 0 14px rgba(200,149,42,.35), 0 4px 16px rgba(0,0,0,.5);
+      border-color: rgba(200,149,42,.3) !important;
+    }
+    body.dark .map-btn {
+      box-shadow: 0 0 12px rgba(200,149,42,.2), 0 2px 10px rgba(0,0,0,.5);
+    }
+    body.dark .map-btn:hover {
+      box-shadow: 0 0 18px rgba(200,149,42,.4), 0 2px 10px rgba(0,0,0,.5);
+      border-color: rgba(200,149,42,.4) !important;
+    }
+    body.dark .info-panel {
+      box-shadow: 0 0 40px rgba(0,0,0,.7), 0 0 20px rgba(200,149,42,.12);
+    }
+    body.dark .c-card.on {
+      box-shadow: 0 0 16px rgba(200,149,42,.25), inset 0 0 0 1px rgba(200,149,42,.3);
+    }
+    body.dark .b-item.on {
+      box-shadow: 0 0 14px rgba(200,149,42,.22), inset 0 0 0 1px rgba(200,149,42,.28);
+    }
+    body.dark .chip.on, body.dark .chip:hover {
+      box-shadow: 0 0 12px rgba(200,149,42,.3);
+    }
+    body.dark .view-pill {
+      box-shadow: 0 0 18px rgba(0,0,0,.6), 0 0 12px rgba(200,149,42,.15);
+    }
+    body.dark .dir-panel {
+      box-shadow: 0 0 36px rgba(0,0,0,.65), 0 0 16px rgba(200,149,42,.1);
+    }
+    body.dark .ico-btn#themeBtn {
+      box-shadow: 0 0 10px rgba(200,149,42,.35);
+      border-color: rgba(200,149,42,.35) !important;
+    }
+    /* Map dark overlay for tiles — applied via JS tile swap */
+    body.dark #map .leaflet-tile-pane {
+      filter: brightness(0.85) contrast(1.1) saturate(0.8);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE OVERLAY
+    ═══════════════════════════════════════════════════════════ */
+    .mob-overlay{display:none;position:fixed;inset:0;z-index:299;background:rgba(28,24,16,.45);
+      backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity var(--slow) var(--ease)}
+    .mob-overlay.open{opacity:1;pointer-events:auto}
+    @media(max-width:768px){.mob-overlay{display:block}}
+
+    /* ═══════════════════════════════════════════════════════════
+       LIVE NAV HUD
+    ═══════════════════════════════════════════════════════════ */
+    .nav-hud {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 700; width: min(520px, calc(100vw - 32px));
+      background: linear-gradient(135deg,rgba(20,17,10,.97) 0%,rgba(14,12,7,.99) 100%);
+      border: 1px solid rgba(200,149,42,.35); border-radius: 18px;
+      box-shadow: 0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(200,149,42,.14);
+      padding: 16px 18px 14px; display: none; flex-direction: column; gap: 10px;
+      color: #fff; backdrop-filter: blur(20px);
+    }
+    .nav-hud.active { display: flex }
+    .nav-hud-top { display:flex; align-items:center; gap:12px }
+    .nav-hud-arrow {
+      flex-shrink:0; width:48px; height:48px; background:var(--gold);
+      border-radius:12px; display:flex; align-items:center; justify-content:center;
+      font-size:22px; box-shadow:0 4px 16px rgba(200,149,42,.4); transition:transform .3s var(--ease)
+    }
+    .nav-hud-text { flex:1; min-width:0 }
+    .nav-hud-action { font-family:var(--display); font-size:17px; font-weight:700; color:#fff; line-height:1.25; margin-bottom:2px }
+    .nav-hud-detail { font-size:12.5px; color:rgba(255,255,255,.6); line-height:1.5 }
+    .nav-hud-dist { flex-shrink:0; text-align:right }
+    .nav-hud-dist-val { font-family:var(--display); font-size:20px; font-weight:700; color:var(--gold-lt); line-height:1 }
+    .nav-hud-dist-unit { font-size:10px; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.08em }
+    .nav-hud-progress { display:flex; align-items:center; gap:10px }
+    .nav-hud-bar { flex:1; height:3px; background:rgba(255,255,255,.12); border-radius:99px; overflow:hidden }
+    .nav-hud-fill { height:100%; background:var(--gold); border-radius:inherit; transition:width .6s var(--ease) }
+    .nav-hud-step-count { font-size:11px; color:rgba(255,255,255,.4); white-space:nowrap }
+    .nav-hud-controls { display:flex; gap:8px }
+    .nav-hud-btn {
+      flex:1; height:36px; border-radius:9px; border:none; cursor:pointer;
+      font-family:var(--ui); font-size:12.5px; font-weight:600;
+      transition:all .15s; display:flex; align-items:center; justify-content:center; gap:6px
+    }
+    .nav-hud-btn.prev { background:rgba(255,255,255,.1); color:rgba(255,255,255,.7) }
+    .nav-hud-btn.prev:hover { background:rgba(255,255,255,.18); color:#fff }
+    .nav-hud-btn.next { background:var(--gold); color:#fff }
+    .nav-hud-btn.next:hover { background:var(--gold-lt) }
+    .nav-hud-btn.stop { background:rgba(130,30,56,.8); color:#fff; flex:0 0 auto; padding:0 14px }
+    .nav-hud-btn.stop:hover { background:var(--wine) }
+
+    /* Start Moving button (leaflet marker popup) */
+    .start-nav-popup {
+      background:var(--gold); color:#fff; border:2.5px solid #fff;
+      border-radius:99px; padding:6px 16px;
+      font-family:var(--ui); font-size:12px; font-weight:700;
+      cursor:pointer; box-shadow:0 4px 14px rgba(200,149,42,.5);
+      transition:all .15s; white-space:nowrap; display:block; margin:4px auto 0;
+    }
+    .start-nav-popup:hover { background:var(--gold-dk) }
+
+    /* Voice banner inside directions panel */
+    .dir-voice-banner {
+      display:flex; align-items:center; gap:10px;
+      background:linear-gradient(135deg,rgba(200,149,42,.1),rgba(200,149,42,.05));
+      border:1px solid rgba(200,149,42,.25); border-radius:10px;
+      padding:11px 14px; margin-bottom:2px;
+    }
+    .dir-voice-avatar {
+      width:34px; height:34px; background:var(--gold); border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:15px;
+      flex-shrink:0; box-shadow:0 2px 8px var(--gold-glow);
+    }
+    .dir-voice-text { flex:1; font-size:12.5px; color:var(--slate); line-height:1.5 }
+    .dir-voice-text strong { color:var(--gold-dk); font-weight:700 }
+    .dir-replay-btn {
+      height:28px; padding:0 12px; border-radius:var(--r-full);
+      background:var(--gold); color:#fff; border:none;
+      font-family:var(--ui); font-size:11px; font-weight:700;
+      cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:4px; flex-shrink:0;
+    }
+    .dir-replay-btn:hover { background:var(--gold-dk) }
+
+    /* Start Navigation CTA inside panel */
+    .dir-start-nav {
+      width:100%; height:48px;
+      background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dk) 100%);
+      color:#fff; border:none; border-radius:var(--r-sm);
+      font-family:var(--ui); font-size:14px; font-weight:700; letter-spacing:.02em;
+      display:flex; align-items:center; justify-content:center; gap:9px;
+      cursor:pointer; box-shadow:0 4px 18px var(--gold-glow); transition:all .15s var(--ease);
+    }
+    .dir-start-nav:hover { transform:translateY(-1px); box-shadow:0 8px 24px var(--gold-glow) }
+    .dir-start-nav:active { transform:none }
+    .dir-start-nav svg { fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;width:16px;height:16px }
+
+    /* OSRM routing spinner */
+    .dir-routing-spinner {
+      display:flex; align-items:center; justify-content:center; gap:12px;
+      padding:28px 20px; color:var(--muted); font-size:13px;
+    }
+    .dir-routing-spinner::before {
+      content:''; width:20px; height:20px;
+      border:2.5px solid var(--border); border-top-color:var(--gold);
+      border-radius:50%; animation:dir-spin .7s linear infinite; flex-shrink:0;
+    }
+   </style>
+</head>
+
+<body>
+
+  <!-- Live Navigation HUD -->
+  <div class="nav-hud" id="navHud">
+    <div class="nav-hud-top">
+      <div class="nav-hud-arrow" id="navHudArrow">➡️</div>
+      <div class="nav-hud-text">
+        <div class="nav-hud-action" id="navHudAction">Preparing route…</div>
+        <div class="nav-hud-detail" id="navHudDetail"></div>
+      </div>
+      <div class="nav-hud-dist">
+        <div class="nav-hud-dist-val" id="navHudDistVal">—</div>
+        <div class="nav-hud-dist-unit">to next step</div>
+      </div>
+    </div>
+    <div class="nav-hud-progress">
+      <div class="nav-hud-bar"><div class="nav-hud-fill" id="navHudFill" style="width:0%"></div></div>
+      <div class="nav-hud-step-count" id="navHudCount">Step 1 of 1</div>
+    </div>
+    <div class="nav-hud-controls">
+      <button class="nav-hud-btn prev" id="navPrev">◀ Previous</button>
+      <button class="nav-hud-btn next" id="navNext">Next ▶</button>
+      <button class="nav-hud-btn stop" id="navStop">■ End</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="load-inner">
+      <div class="load-badge">DTI</div>
+      <div>
+        <div class="load-title">Design &amp; Technology Institute</div>
+        <div class="load-sub" style="text-align:center;margin-top:5px">Smart Campus Map · Ghana</div>
+      </div>
+      <div class="load-bar">
+        <div class="load-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile sidebar overlay -->
+  <div class="mob-overlay" id="mobOverlay"></div>
+
+  <!-- Mobile toggle -->
+  <button class="mob-toggle" id="mobToggle" aria-label="Menu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  </button>
+
+  <div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sb-top">
+        <div class="brand">
+          <div class="brand-logo" id="brandLogo">DTI</div>
+          <div>
+            <div class="brand-name">Campus Map</div>
+            <div class="brand-desc">Design &amp; Technology Institute</div>
+          </div>
+        </div>
+        <div class="srch-wrap" id="srchWrap">
+          <svg class="srch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input id="srchInput" class="srch-input" type="search" placeholder="Search campuses or buildings…"
+            autocomplete="off" spellcheck="false">
+          <button class="srch-clear" id="srchClear">✕</button>
+          <div class="srch-drop" id="srchDrop"></div>
+        </div>
+        <div class="chip-row">
+          <div class="chip-inner" id="chipInner"></div>
+        </div>
+      </div>
+
+      <div class="ctx-bar">
+        <span class="ctx-txt" id="ctxTxt"><strong>All DTI Campuses</strong></span>
+        <button id="backBtn" class="back-btn hidden">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Back
+        </button>
+      </div>
+
+      <div class="sb-list" id="navList"></div>
+
+      <div class="sb-foot">
+        <span class="foot-lbl"><span class="foot-dot"></span><span id="modeLabel">All Campuses</span></span>
+        <button class="ico-btn" id="themeBtn" title="Toggle theme">
+          <!-- Moon: shown in light mode -->
+          <svg id="themeBtnMoon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <!-- Sun: shown in dark mode -->
+          <svg id="themeBtnSun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+            stroke-linecap="round" style="display:none">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAP -->
+    <section class="map-stage">
+      <div class="view-pill"><span class="view-dot"></span><span id="viewLabel">DTI Ghana — All Campuses</span></div>
+      <div id="map"></div>
+
+      <div class="map-ctrl">
+        <button class="map-btn" id="homeBtn" title="All campuses">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M3 9.5L12 3l9 6.5V20H15v-5H9v5H3z" />
+          </svg>
+        </button>
+        <button class="map-btn" id="zIn" style="font-size:21px">+</button>
+        <button class="map-btn" id="zOut" style="font-size:21px">−</button>
+        <button class="map-btn" id="routeBtn" title="Connections">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="5" cy="12" r="2.5" />
+            <circle cx="19" cy="12" r="2.5" />
+            <path d="M7.5 12h9" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- INFO PANEL — position:fixed, never clipped -->
+      <aside id="infoPanel" class="info-panel" aria-hidden="true">
+        <div class="p-stripe" id="pStripe"></div>
+        <button id="pClose" class="p-close" title="Close">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="p-hero" id="pHero"></div>
+
+        <div class="p-head">
+          <span class="p-eyebrow" id="pEyebrow">Campus</span>
+          <h2 class="p-title" id="pTitle">Select a location</h2>
+          <div class="p-subtitle" id="pSubtitle"></div>
+          <div class="p-tags" id="pTags"></div>
+        </div>
+
+        <div class="p-body">
+          <p class="p-desc" id="pDesc">Tap any marker or sidebar item to explore DTI's campuses.</p>
+
+          <div id="pGallery" style="display:none">
+            <div class="sec-title">Campus Photos</div>
+            <div class="gallery" id="galleryStrip"></div>
+          </div>
+
+          <div id="pStats" style="display:none"></div>
+          <div id="pCoords" style="display:none"></div>
+          <div id="pHighlights" style="display:none"></div>
+          <div id="pTimeline" style="display:none"></div>
+          <div id="pFacilities" style="display:none"></div>
+
+          <button id="focusBtn" class="focus-btn" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            Focus on map
+          </button>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <!-- Directions FAB -->
+  <button class="dir-fab" id="dirFab">
+    <svg viewBox="0 0 24 24">
+      <polygon points="3 11 22 2 13 21 11 13 3 11" />
+    </svg>
+    Get Directions
+  </button>
+
+  <!-- Directions Panel -->
+  <div class="dir-panel" id="dirPanel" aria-hidden="true">
+    <div class="dir-drag">
+      <div class="dir-drag-bar"></div>
+    </div>
+    <div class="dir-hd">
+      <div class="dir-hd-row">
+        <div class="dir-hd-icon">
+          <svg viewBox="0 0 24 24">
+            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+          </svg>
+        </div>
+        <div class="dir-hd-title">Get Directions</div>
+        <button class="dir-hd-close" id="dirClose">&#x2715;</button>
+      </div>
+      <!-- From / To -->
+      <div class="dir-fields">
+        <div class="dir-connector"></div>
+        <div class="dir-field">
+          <div class="dir-dot a">A</div>
+          <select class="dir-sel" id="dirFrom">
+            <option value="">Choose starting point&hellip;</option>
+          </select>
+        </div>
+        <div class="dir-field">
+          <div class="dir-dot b">B</div>
+          <select class="dir-sel" id="dirTo">
+            <option value="">Choose destination&hellip;</option>
+          </select>
+        </div>
+        <button class="dir-swap-btn" id="dirSwap" title="Swap locations">
+          <svg viewBox="0 0 24 24">
+            <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4" />
+          </svg>
+        </button>
+      </div>
+      <!-- Go button -->
+      <button class="dir-go" id="dirGo" disabled>
+        <svg viewBox="0 0 24 24">
+          <polygon points="3 11 22 2 13 21 11 13 3 11" />
+        </svg>
+        Show Route on Map
+      </button>
+      <!-- AI divider -->
+      <div class="dir-ai-sep">
+        <div class="dir-ai-sep-line"></div>
+        <div class="dir-ai-sep-txt">&#x2728; or ask in plain English</div>
+        <div class="dir-ai-sep-line"></div>
+      </div>
+      <div class="dir-ai-row">
+        <input class="dir-ai-inp" id="dirAiInp" type="text"
+          placeholder="e.g. How do I get from the library to the welding lab?" autocomplete="off">
+        <button class="dir-ai-send" id="dirAiSend" title="Ask AI">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="dir-results" id="dirResults">
+      <div class="dir-empty">
+        <div class="dir-empty-icon">&#x1F9ED;</div>
+        <div class="dir-empty-title">Campus Navigation</div>
+        <div class="dir-empty-sub">Choose a starting point and destination from the dropdowns, or type your question
+          below to get walking directions.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Glassmorphism Directions Modal -->
+  <div class="modal-overlay" id="directionModal">
+    <div class="glass-modal">
+      <button class="modal-close-x" id="closeModalBtn" title="Close">&#x2715;</button>
+      <h3>
+        <span class="modal-icon">🧭</span>
+        Find Your Way
+      </h3>
+      <!-- Voice greeting banner -->
+      <div class="modal-voice-banner" id="voiceBanner">
+        <div class="modal-voice-avatar" id="voiceAvatar">🎙️</div>
+        <div class="modal-voice-text">
+          <strong>Campus Navigator</strong>
+          <span id="voiceGreetingText">Detecting your location…</span>
+          <span class="audio-wave stopped" id="audioWave">
+            <span></span><span></span><span></span><span></span>
+          </span>
+        </div>
+      </div>
+      <!-- From -->
+      <div class="input-group">
+        <label for="modalFrom">📍 Your Location</label>
+        <input type="text" id="modalFrom" class="glass-input" placeholder="Detecting your position…" readonly>
+        <span id="locationStatus" class="location-status">Requesting GPS…</span>
+      </div>
+      <!-- To with autocomplete -->
+      <div class="input-group" id="modalToGroup">
+        <label for="modalTo">🎯 Where to?</label>
+        <input type="text" id="modalTo" class="glass-input" placeholder="Type a building, lab, hostel…" autocomplete="off" spellcheck="false">
+        <div class="modal-dest-drop" id="modalDestDrop"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-glass secondary" id="cancelModalBtn">Cancel</button>
+        <button class="btn-glass primary" id="getRouteBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:5px;vertical-align:middle"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Get Directions
+        </button>
+      </div>
+    </div>
+  </div>
+
+   <!-- Lightbox -->
+  <div class="lb" id="lb">
+    <button class="lb-close" id="lbClose">✕</button>
+    <img id="lbImg" src="" alt="">
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+  <script>
+    /* ═══════════════════════════════════════════════════════════════════
+       DTI CAMPUS MAP v5
+       Gold = Academic/Active  |  Wine = Residential/Hostel/Planned
+    ═══════════════════════════════════════════════════════════════════ */
+
+    // ╔═══════════════════════════════════════════════════════════════╗
+    // ║  IMAGE REGISTRY                                               ║
+    // ║  Set any value to a real URL, file path, or base64 string.   ║
+    // ║  null = elegant placeholder is shown instead.                ║
+    // ╚═══════════════════════════════════════════════════════════════╝
+    const IMG = {
+      logo: null,  // e.g. "./dti-logo.png"
+      hero: {
+        "main-campus": null,
+        "sabala-campus": null,
+        "adofu-campus": null,
+        "awale-t3-campus": null,
+        "fihankra-hostel": null,
+        "nsaa-campus": null,
+        "berekuso-campus": null,
+      },
+      gallery: {
+        // Each array item: {src:"...", caption:"..."} or null (shows placeholder slot)
+        "main-campus": [null, null, null, null],
+        "sabala-campus": [null, null, null],
+        "nsaa-campus": [null, null, null],
+        "fihankra-hostel": [null, null],
+        "awale-t3-campus": [null, null],
+        "adofu-campus": [null],
+        "berekuso-campus": [null, null],
+      },
+      thumb: {
+        "main-campus": null,
+        "sabala-campus": null,
+        "adofu-campus": null,
+        "awale-t3-campus": null,
+        "fihankra-hostel": null,
+        "nsaa-campus": null,
+        "berekuso-campus": null,
+      }
+    };
+
+    // ── Campus data ──────────────────────────────────────────────────
+    const CAMPUSES = [
+      {
+        id: "main-campus", name: "Main Campus", icon: "🏫", coords: [5.65285, -0.16324], role: "academic", planned: false, region: "East Legon, Accra",
+        description: "DTI's flagship campus in Mempeasem, East Legon — container-based architecture, academic blocks, workshops, innovation labs, library, dining, and student services. Ghana's National Centre of Excellence for TVET.",
+        highlights: ["Container-based and recycled-material architecture", "Academic blocks, workshops, innovation labs, library & dining", "AWS SENSE certified welding training center (2025)", "800+ graduates and 400+ current students", "Ghana's National Centre of Excellence for TVET"],
+        stats: [{ v: "2019", l: "Opened" }, { v: "400+", l: "Students" }, { v: "800+", l: "Graduates" }, { v: "CoE", l: "TVET Status" }],
+        timeline: [{ y: "2016", t: "Training initiative begins at Accents & Art factory." }, { y: "2017", t: "Renamed Design & Technology Institute." }, { y: "2019", t: "Mempeasem campus opens." }, { y: "2025", t: "AWS SENSE-certified welding centre commissioned." }]
+      },
+      {
+        id: "sabala-campus", name: "Sabala Campus", icon: "🏠", coords: [5.65530, -0.16345], role: "hybrid", planned: false, region: "East Legon, Accra",
+        description: "A mixed learning and residential node — labs, library, infirmary, student rooms, dining, wellness, and campus services seamlessly integrated.",
+        highlights: ["Academic, residential, and student-service integration", "Labs, library, infirmary, rooms, kitchen, and dining", "24/7 student support services", "Entrepreneurship and innovation spaces"]
+      },
+      {
+        id: "adofu-campus", name: "Adofu Residence", icon: "👥", coords: [5.6554319, -0.1639685], role: "staff-residential", planned: false, region: "East Legon, Accra",
+        description: "Internal staff-residential support node for staff accommodation, guests, and student coordination.",
+        highlights: ["Staff accommodation and student coordinator residence", "Guest quarters for visiting staff", "Operational support housing for the DTI ecosystem"]
+      },
+      {
+        id: "awale-t3-campus", name: "Awale-T3 / PMU Office", icon: "🔧", coords: [5.655036, -0.163674], role: "workshop-administrative", planned: false, region: "East Legon, Accra",
+        description: "Operations and workshop node — PMU offices, fabrication activity, safety coordination, storage, and workshop infrastructure.",
+        highlights: ["PMU and administrative operations", "Workshop and fabrication-first spatial model", "Safety coordination and operational infrastructure"]
+      },
+      {
+        id: "fihankra-hostel", name: "Fihankra Boys Hostel", icon: "🛏️", coords: [5.65173, -0.16646], role: "residential", planned: false, region: "East Legon, Accra",
+        description: "Dedicated residential hostel for male students with accommodation, dining, washrooms, and house-master supervision.",
+        highlights: ["Student residential hostel for male students", "House-master supervision and support", "Dining, washroom, and welfare facilities", "Secure gated residential environment"],
+        stats: [{ v: "Residential", l: "Type" }, { v: "Boys", l: "Hostel" }, { v: "Active", l: "Status" }, { v: "East Legon", l: "Location" }]
+      },
+      {
+        id: "nsaa-campus", name: "Nsaa Campus", icon: "💚", coords: [5.657569, -0.157491], role: "hybrid", planned: false, region: "East Legon, Accra",
+        description: "Hybrid academic, wellness, and residential node — offices, learning areas, student rooms, dining, psychology services, and alumni engagement.",
+        highlights: ["Wellness, residential, and learning campus mix", "Alumni, psychology, staff common-room, and academic spaces", "Student rooms, kitchen, dining, and infirmary support"]
+      },
+      {
+        id: "berekuso-campus", name: "Berekuso Multi-Skills Campus", icon: "🏗️", coords: [5.75917, -0.22000], role: "planned-multi-skills", planned: true, region: "Eastern Region, Berekuso",
+        description: "Future DTI campus under development — 11.29 acres in Berekuso featuring academic blocks, 160-booth welding workshop, NDT labs, anchor factory spaces, amphitheatre, and full student amenities.",
+        highlights: ["11.29-acre campus in the Berekuso hills", "Phase I (2028): academic blocks, 160-booth welding workshop, NDT labs", "3,500 students/year target capacity", "Programmes: welding, CAD/CAM, multimedia, entrepreneurship, agro-mechanics", "AWS SENSE · Pearson BTEC · CTVET Level 3 certifications"],
+        stats: [{ v: "Mar 2026", l: "Groundbreaking" }, { v: "11.29 ac", l: "Site Area" }, { v: "3,500/yr", l: "Capacity" }, { v: "2028", l: "Phase I" }],
+        timeline: [{ y: "2026", t: "Groundbreaking ceremony, Berekuso." }, { y: "2028", t: "Phase I: academic blocks, workshop, labs, and student amenities." }]
+      }
+    ];
+
+    const BUILDINGS = [
+      { id: "edna-admin-block", cid: "main-campus", name: "Edna Wilhemina's Admin Block", cat: "administrative", coords: [5.65295, -0.16330], desc: "Main administrative offices housing executive functions." },
+      { id: "executive-lounge", cid: "main-campus", name: "Executive Lounge", cat: "administrative", coords: [5.65288, -0.16325], desc: "Premium lounge for executives and visitors." },
+      { id: "mckinstry", cid: "main-campus", name: "MCKinstry", cat: "labs", coords: [5.65278, -0.16322], desc: "Engineering and technical training facility." },
+      { id: "makerspace", cid: "main-campus", name: "Makerspace", cat: "labs", coords: [5.65282, -0.16318], desc: "Creative fabrication and prototyping lab." },
+      { id: "cad-cam-lab", cid: "main-campus", name: "CAD/CAM Lab", cat: "labs", coords: [5.65275, -0.16320], desc: "Advanced fabrication and CAD/CAM training lab." },
+      { id: "di-lab", cid: "main-campus", name: "DI Lab", cat: "labs", coords: [5.65280, -0.16325], desc: "Design and Innovation laboratory." },
+      { id: "welding-unit", cid: "main-campus", name: "Welding Unit", cat: "labs", coords: [5.65276, -0.16315], desc: "AWS SENSE-certified metal fabrication and welding training facility." },
+      { id: "edith-library", cid: "main-campus", name: "Edith Amarteifio Library", cat: "academic", coords: [5.65288, -0.16322], desc: "Main library and resource center." },
+      { id: "denkyem", cid: "main-campus", name: "Denkyem", cat: "academic", coords: [5.65293, -0.16327], desc: "Academic building for engineering programs." },
+      { id: "akrafena", cid: "main-campus", name: "Akrafena", cat: "academic", coords: [5.65290, -0.16324], desc: "Academic building for design programs." },
+      { id: "amphitheatre", cid: "main-campus", name: "Amphitheatre", cat: "academic", coords: [5.65270, -0.16310], desc: "Outdoor performance and gathering space." },
+      { id: "infirmary-main", cid: "main-campus", name: "Infirmary", cat: "wellness", coords: [5.65290, -0.16335], desc: "Medical facility for students and staff." },
+      { id: "eating-area-main", cid: "main-campus", name: "Eating Area", cat: "dining", coords: [5.65285, -0.16340], desc: "Student dining and cafeteria space." },
+      { id: "tuck-shop", cid: "main-campus", name: "Tuck Shop", cat: "dining", coords: [5.65283, -0.16342], desc: "Convenience store for snacks and essentials." },
+      { id: "security-main", cid: "main-campus", name: "Security Post", cat: "support", coords: [5.65300, -0.16350], desc: "Main campus security checkpoint." },
+      { id: "reception-sabala", cid: "sabala-campus", name: "Reception", cat: "administrative", coords: [5.65540, -0.16350], desc: "Main reception and welcome area." },
+      { id: "art-sound-lab", cid: "sabala-campus", name: "Art/Sound Lab", cat: "labs", coords: [5.65535, -0.16340], desc: "Creative arts and sound engineering facility." },
+      { id: "makerspace-sabala", cid: "sabala-campus", name: "Makerspace", cat: "labs", coords: [5.65532, -0.16338], desc: "Creative fabrication and prototyping lab." },
+      { id: "library-sabala", cid: "sabala-campus", name: "Library", cat: "academic", coords: [5.65536, -0.16342], desc: "Campus library and study resources." },
+      { id: "rooms-sabala", cid: "sabala-campus", name: "Student Rooms", cat: "hostel", coords: [5.65528, -0.16340], desc: "Accommodation facilities for students." },
+      { id: "eating-sabala", cid: "sabala-campus", name: "Eating Area", cat: "dining", coords: [5.65531, -0.16345], desc: "Student dining and cafeteria space." },
+      { id: "alumni-office", cid: "nsaa-campus", name: "Alumni Office", cat: "administrative", coords: [5.65765, -0.15755], desc: "Office for alumni relations and engagement." },
+      { id: "psych-wellness", cid: "nsaa-campus", name: "Psychology & Wellness Office", cat: "wellness", coords: [5.65760, -0.15750], desc: "Counseling and mental health support services." },
+      { id: "nkyinkyim", cid: "nsaa-campus", name: "Nkyinkyim", cat: "academic", coords: [5.65762, -0.15752], desc: "Academic building for technology programs." },
+      { id: "rooms-nsaa", cid: "nsaa-campus", name: "Student Rooms", cat: "hostel", coords: [5.65750, -0.15740], desc: "Accommodation facilities." },
+      { id: "awale-pmu", cid: "awale-t3-campus", name: "PMU Offices", cat: "administrative", coords: [5.65502, -0.16362], desc: "Projects and Monitoring Unit offices." },
+      { id: "awale-workshop", cid: "awale-t3-campus", name: "Main Workshop Bay", cat: "labs", coords: [5.65508, -0.16370], desc: "Primary fabrication and prototyping workshop space." },
+      { id: "adofu-staff-house", cid: "adofu-campus", name: "Staff House", cat: "hostel", coords: [5.65542, -0.16395], desc: "Residential quarters for DTI staff members." },
+      { id: "hostel-rooms", cid: "fihankra-hostel", name: "Hostel Rooms", cat: "hostel", coords: [5.65180, -0.16650], desc: "Accommodation facilities for male students — multiple dormitory rooms." },
+      { id: "house-master", cid: "fihankra-hostel", name: "House Master Room", cat: "hostel", coords: [5.65175, -0.16640], desc: "Supervisor accommodation and oversight quarters." },
+      { id: "eating-fihankra", cid: "fihankra-hostel", name: "Eating Area", cat: "dining", coords: [5.65168, -0.16645], desc: "Dining facility for hostel residents." },
+      { id: "washroom-fihankra", cid: "fihankra-hostel", name: "Washroom", cat: "support", coords: [5.65172, -0.16643], desc: "Sanitary facilities for hostel residents." },
+      { id: "berekuso-academic", cid: "berekuso-campus", name: "Academic Blocks", cat: "academic", planned: true, coords: [5.75930, -0.21986], desc: "Two planned 3-storey academic blocks with skill-based classrooms and design studios." },
+      { id: "berekuso-admin", cid: "berekuso-campus", name: "Administration Block", cat: "administrative", planned: true, coords: [5.75910, -0.22018], desc: "Planned 2-storey admin block with leadership offices." },
+      { id: "berekuso-welding", cid: "berekuso-campus", name: "Welding & Fabrication Workshop", cat: "labs", planned: true, coords: [5.75892, -0.21970], desc: "Planned 160-booth welding and fabrication workshop with AWS SENSE equipment." },
+      { id: "berekuso-ndt", cid: "berekuso-campus", name: "NDT Labs", cat: "labs", planned: true, coords: [5.75902, -0.21948], desc: "Planned non-destructive testing labs." },
+    ];
+
+    // ── Placeholder data ─────────────────────────────────────────────
+    const C_PH = {
+      "main-campus": { icon: "🏫", label: "Main Campus", bg: "#F5EDD8" },
+      "sabala-campus": { icon: "🏠", label: "Sabala Campus", bg: "#EEE8D5" },
+      "adofu-campus": { icon: "👥", label: "Adofu Residence", bg: "#EBE4D2" },
+      "awale-t3-campus": { icon: "🔧", label: "Awale-T3 / PMU", bg: "#E8E1CE" },
+      "fihankra-hostel": { icon: "🛏️", label: "Fihankra Hostel", bg: "#F0E6EA" },
+      "nsaa-campus": { icon: "💚", label: "Nsaa Campus", bg: "#E4EDE4" },
+      "berekuso-campus": { icon: "🏗️", label: "Berekuso", bg: "#E4EAF0" },
+    };
+    const B_PH = {
+      administrative: { icon: "🏛", label: "Admin" }, labs: { icon: "⚗️", label: "Lab" },
+      academic: { icon: "📚", label: "Academic" }, wellness: { icon: "💊", label: "Wellness" },
+      dining: { icon: "🍽", label: "Dining" }, hostel: { icon: "🛏", label: "Hostel" },
+      support: { icon: "⚙️", label: "Support" },
+    };
+    const G_SLOTS = {
+      "main-campus": [["🏫", "Entrance"], ["⚗️", "Workshop"], ["📚", "Library"], ["🎭", "Amphitheatre"]],
+      "sabala-campus": [["🏠", "Campus"], ["⚗️", "Lab"], ["🛏", "Rooms"]],
+      "nsaa-campus": [["💚", "Campus"], ["🌿", "Wellness"], ["🍽", "Dining"]],
+      "fihankra-hostel": [["🛏️", "Hostel Block"], ["🍽", "Dining"]],
+      "awale-t3-campus": [["🔧", "PMU Offices"], ["🏭", "Workshop"]],
+      "adofu-campus": [["👥", "Staff House"]],
+      "berekuso-campus": [["🏗️", "Site View"], ["🌄", "Groundbreaking"]],
+    };
+
+    function phSVG(icon, label, bg = '#EDE7D8') {
+      const s = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200"><rect width="400" height="200" fill="${bg}"/><text x="200" y="88" font-size="46" text-anchor="middle" dominant-baseline="middle" font-family="system-ui">${icon}</text><text x="200" y="140" font-size="12" text-anchor="middle" font-family="system-ui" fill="#BBB0A0" font-weight="600" letter-spacing="1">${label.toUpperCase()}</text><text x="200" y="160" font-size="9" text-anchor="middle" font-family="system-ui" fill="#BBB0A0" opacity="0.6">Add real photo here</text></svg>`;
+      return 'data:image/svg+xml,' + encodeURIComponent(s);
+    }
+
+    function getHeroSrc(id, cat) {
+      const real = IMG.hero[id];
+      if (real) return real;
+      const cp = C_PH[id];
+      if (cp) return phSVG(cp.icon, cp.label, cp.bg);
+      const bp = B_PH[cat] || { icon: '📍', label: 'Building' };
+      return phSVG(bp.icon, bp.label);
+    }
+
+    // ── App state ────────────────────────────────────────────────────
+    let map, mkGroup, bldGroup, rtGroup;
+    let cMarkers = {}, bMarkers = {};
+    let mode = 'global', activeCampus = null, selId = null;
+    let activeChip = 'all', routesOn = false;
+
+    const CHIPS = [
+      { id: 'all', l: 'All' }, { id: 'academic', l: 'Academic' }, { id: 'hostel', l: 'Hostel' },
+      { id: 'hybrid', l: 'Hybrid' }, { id: 'workshop', l: 'Workshop' }, { id: 'planned', l: 'Planned' }
+    ];
+
+    // ── Init ─────────────────────────────────────────────────────────
+    function init() {
+      initMap();
+      initChips();
+      renderCampuses();
+      initSearch();
+      initControls();
+      if (IMG.logo) applyLogo();
+      setTimeout(() => document.body.classList.add('ready'), 1050);
+    }
+
+    function applyLogo() {
+      const img = document.createElement('img');
+      img.src = IMG.logo; img.alt = 'DTI';
+      document.getElementById('brandLogo').innerHTML = '';
+      document.getElementById('brandLogo').appendChild(img);
+    }
+
+    // ── Map ──────────────────────────────────────────────────────────
+    function initMap() {
+      map = L.map('map', {
+        center: [5.695, -0.173], zoom: 14, minZoom: 6, maxZoom: 20,
+        zoomControl: false, zoomSnap: 0.25, zoomDelta: 0.5
+      });
+
+      const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      const TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      const TILE_ATTR  = '&copy; CARTO &copy; OpenStreetMap';
+
+      const isDarkOnLoad = document.body.classList.contains('dark');
+      window._tileLayer = L.tileLayer(isDarkOnLoad ? TILE_DARK : TILE_LIGHT,
+        { attribution: TILE_ATTR, subdomains: 'abcd', maxZoom: 20 }).addTo(map);
+
+      window._swapMapTiles = function(dark) {
+        if (window._tileLayer) map.removeLayer(window._tileLayer);
+        window._tileLayer = L.tileLayer(dark ? TILE_DARK : TILE_LIGHT,
+          { attribution: TILE_ATTR, subdomains: 'abcd', maxZoom: 20 });
+        window._tileLayer.addTo(map);
+        window._tileLayer.bringToBack();
+      };
+
+      mkGroup = L.layerGroup().addTo(map);
+      bldGroup = L.layerGroup().addTo(map);
+      rtGroup = L.layerGroup();
+      placeCampusMarkers();
+      map.on('zoomend', handleZoom);
+      map.on('click', () => { if (selId) deselect(); });
+    }
+
+    function handleZoom() {
+      const z = map.getZoom();
+      const lbl = z >= 17 ? 'Building Detail' : z >= 15 ? (activeCampus ? activeCampus.name + ' — Detail' : 'Campus Detail')
+        : activeCampus ? activeCampus.name : 'DTI Ghana — All Campuses';
+      document.getElementById('viewLabel').textContent = lbl;
+      const show = z >= 15 && activeCampus;
+      bldGroup.eachLayer(l => {
+        const el = l.getElement && l.getElement();
+        if (el) el.style.opacity = show ? '1' : '0';
+      });
+    }
+
+    // ── Campus markers ───────────────────────────────────────────────
+    function placeCampusMarkers() {
+      CAMPUSES.forEach(c => {
+        const mk = buildCampusMk(c);
+        cMarkers[c.id] = mk;
+        mkGroup.addLayer(mk);
+      });
+    }
+
+    function buildCampusMk(c) {
+      const isRes = resRole(c.role);
+      const fill = isRes ? '#821E38' : '#C8952A';
+      const pulse = isRes ? 'var(--wine)' : 'var(--gold)';
+      const sz = c.id === 'main-campus' ? 46 : 38;
+      const thumbSrc = IMG.thumb[c.id];
+      const thumbHtml = thumbSrc
+        ? `<div style="position:absolute;inset:-2px;border-radius:50%;overflow:hidden;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(28,24,16,.28)"><img src="${thumbSrc}" style="width:100%;height:100%;object-fit:cover"></div>`
+        : '';
+
+      const html = `<div class="dti-mk" data-id="${c.id}" style="width:${sz}px;height:${sz + 10}px;color:${pulse}">
+    <div class="mk-pulse"></div>${thumbHtml}
+    <svg width="${sz}" height="${sz + 10}" viewBox="0 0 ${sz} ${sz + 10}" style="overflow:visible;filter:drop-shadow(0 5px 13px rgba(28,24,16,.28))">
+      <path d="M${sz / 2} ${sz + 8}C${sz / 2} ${sz + 8} 4 ${sz * .76} 4 ${sz / 2}C4 ${sz * .22} ${sz * .22} 4 ${sz / 2} 4C${sz * .78} 4 ${sz - 4} ${sz * .22} ${sz - 4} ${sz / 2}C${sz - 4} ${sz * .76} ${sz / 2} ${sz + 8} ${sz / 2} ${sz + 8}Z"
+        fill="${fill}" stroke="white" stroke-width="2.5"/>
+      <circle cx="${sz / 2}" cy="${sz / 2}" r="${(sz - 10) / 2}" fill="white" opacity="0.14"/>
+      <text x="${sz / 2}" y="${sz / 2 + 5}" text-anchor="middle" font-size="16" font-family="system-ui">${c.icon}</text>
+    </svg>
+  </div>`;
+
+      const icon = L.divIcon({ html, className: '', iconSize: [sz, sz + 10], iconAnchor: [sz / 2, sz + 8] });
+      const mk = L.marker(c.coords, { icon, zIndexOffset: 100 });
+      mk.bindTooltip(`<div class="campus-tip${c.planned ? ' planned' : ''}">${c.name}</div>`,
+        { permanent: true, direction: 'top', offset: [0, -(sz + 12)], interactive: false, opacity: 1 });
+      mk.on('click', e => { L.DomEvent.stopPropagation(e); selectCampus(c.id); });
+      return mk;
+    }
+
+    // ── Building markers ─────────────────────────────────────────────
+    function placeBuildingMarkers(cid) {
+      bldGroup.clearLayers(); bMarkers = {};
+      BUILDINGS.filter(b => b.cid === cid).forEach(b => {
+        const col = b.planned ? '#821E38' : '#695E4E';
+        const icon = catIcon(b.cat);
+        const html = `<div class="dti-mk" data-id="${b.id}" style="width:26px;height:30px">
+      <svg width="26" height="30" viewBox="0 0 26 30" style="filter:drop-shadow(0 3px 8px rgba(28,24,16,.22))">
+        <path d="M13 28C13 28 2 20 2 12C2 6.5 7 2 13 2C19 2 24 6.5 24 12C24 20 13 28 13 28Z" fill="${col}" stroke="white" stroke-width="2"/>
+        <text x="13" y="15" text-anchor="middle" font-size="10" font-family="system-ui">${icon}</text>
+      </svg>
+    </div>`;
+        const dIcon = L.divIcon({ html, className: '', iconSize: [26, 30], iconAnchor: [13, 28] });
+        const mk = L.marker(b.coords, { icon: dIcon, zIndexOffset: 50, opacity: 0 });
+        mk.on('click', e => { L.DomEvent.stopPropagation(e); selectBuilding(b.id); });
+        bMarkers[b.id] = mk;
+        bldGroup.addLayer(mk);
+      });
+      bldGroup.addTo(map);
+    }
+
+    function catIcon(c) {
+      return { administrative: '🏛', labs: '⚗️', academic: '📚', wellness: '💊', dining: '🍽', hostel: '🛏', support: '⚙️' }[c] || '📍';
+    }
+
+    // ── Select campus ────────────────────────────────────────────────
+    function selectCampus(id) {
+      const c = CAMPUSES.find(x => x.id === id);
+      if (!c) return;
+      if (activeCampus && activeCampus.id !== id) resetMk(cMarkers[activeCampus.id]);
+      deselect(false);
+      activeCampus = c; selId = id; mode = 'campus';
+
+      const mk = cMarkers[id];
+      if (mk) { const el = mk.getElement(); if (el) { const d = el.querySelector('.dti-mk'); if (d) d.classList.add('sel'); } }
+
+      map.flyTo(c.coords, id === 'berekuso-campus' ? 16 : 17, { animate: true, duration: 1.15, easeLinearity: .25 });
+      placeBuildingMarkers(id);
+      setTimeout(() => {
+        if (map.getZoom() >= 15) bldGroup.eachLayer(l => { const el = l.getElement && l.getElement(); if (el) el.style.opacity = '1'; });
+      }, 1450);
+      renderBuildings(id);
+      document.querySelectorAll('.c-card').forEach(el => el.classList.toggle('on', el.dataset.id === id));
+      document.getElementById('backBtn').classList.remove('hidden');
+      document.getElementById('ctxTxt').innerHTML = `<strong>${c.name}</strong>`;
+      document.getElementById('modeLabel').textContent = c.name;
+      document.getElementById('viewLabel').textContent = c.name + ' — Campus View';
+      openPanel(c, 'campus');
+    }
+
+    function selectBuilding(id) {
+      const b = BUILDINGS.find(x => x.id === id);
+      if (!b) return;
+      selId = id;
+      map.flyTo(b.coords, 19, { animate: true, duration: .8 });
+      Object.values(bMarkers).forEach(m => { const el = m.getElement(); if (el) { const d = el.querySelector('.dti-mk'); if (d) d.classList.remove('sel'); } });
+      const mk = bMarkers[id];
+      if (mk) { const el = mk.getElement(); if (el) { const d = el.querySelector('.dti-mk'); if (d) d.classList.add('sel'); } }
+      document.querySelectorAll('.b-item').forEach(el => el.classList.toggle('on', el.dataset.id === id));
+      openPanel(b, 'building');
+      document.getElementById('viewLabel').textContent = b.name;
+    }
+
+    function deselect(clearBld = true) {
+      selId = null;
+      Object.values(cMarkers).forEach(resetMk);
+      if (clearBld) Object.values(bMarkers).forEach(m => { const el = m.getElement(); if (el) { const d = el.querySelector('.dti-mk'); if (d) d.classList.remove('sel'); } });
+      document.querySelectorAll('.b-item,.c-card').forEach(el => el.classList.remove('on'));
+      closePanel();
+    }
+
+    function resetMk(mk) {
+      if (!mk) return;
+      const el = mk.getElement(); if (el) { const d = el.querySelector('.dti-mk'); if (d) d.classList.remove('sel'); }
+    }
+
+    function goBack() {
+      mode = 'global'; activeCampus = null; selId = null;
+      bldGroup.clearLayers(); bMarkers = {};
+      closePanel(); renderCampuses();
+      document.getElementById('modeLabel').textContent = 'All Campuses';
+      document.getElementById('backBtn').classList.add('hidden');
+      document.getElementById('ctxTxt').innerHTML = '<strong>All DTI Campuses</strong>';
+      document.getElementById('viewLabel').textContent = 'DTI Ghana — All Campuses';
+      map.flyTo([5.695, -0.173], 14, { animate: true, duration: 1.0 });
+    }
+
+    // ── INFO PANEL ───────────────────────────────────────────────────
+    function openPanel(data, type) {
+      const panel = document.getElementById('infoPanel');
+      const isRes = resRole(data.role) || resCat(data.cat);
+      const coords = data.coords;
+
+      panel.classList.add('open');
+      panel.setAttribute('aria-hidden', 'false');
+
+      // Stripe & eyebrow colour — GOLD or WINE, never mixed
+      const stripe = document.getElementById('pStripe');
+      stripe.className = 'p-stripe' + (isRes ? ' wine' : '');
+      const eyebrow = document.getElementById('pEyebrow');
+      eyebrow.className = 'p-eyebrow' + (isRes ? ' wine' : '');
+      eyebrow.textContent = type === 'campus' ? 'DTI Campus' : cap(data.cat || 'Building');
+
+      document.getElementById('pTitle').textContent = data.name;
+      document.getElementById('pSubtitle').textContent =
+        data.region || (data.cid ? (CAMPUSES.find(c => c.id === data.cid)?.name || '') : '') || '';
+
+      // Tags
+      const tagsEl = document.getElementById('pTags'); tagsEl.innerHTML = '';
+      if (type === 'campus') addTag(tagsEl, roleLabel(data.role), isRes ? 'wine' : 'gold');
+      if (data.cat) addTag(tagsEl, cap(data.cat));
+      if (data.planned) addTag(tagsEl, 'Planned', 'wine');
+
+      // Hero
+      renderHero(data.id, data.cat, type, isRes, data.planned);
+
+      // Description
+      document.getElementById('pDesc').textContent = data.description || data.desc || '';
+
+      // Gallery
+      renderGallery(data.id, type);
+
+      // Stats
+      const statsEl = document.getElementById('pStats');
+      statsEl.className = 'stats-grid';
+      if (data.stats && data.stats.length) {
+        statsEl.style.display = 'grid';
+        statsEl.innerHTML = data.stats.map(s => `<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
+      } else statsEl.style.display = 'none';
+
+      // Coords
+      const cEl = document.getElementById('pCoords');
+      if (coords) {
+        cEl.className = 'coord-row'; cEl.style.display = 'flex';
+        cEl.innerHTML = `<div class="coord-cell"><div class="coord-lbl">Latitude</div><div class="coord-val">${coords[0].toFixed(5)}°</div></div>
+      <div class="coord-cell"><div class="coord-lbl">Longitude</div><div class="coord-val">${coords[1].toFixed(5)}°</div></div>`;
+      } else cEl.style.display = 'none';
+
+      // Highlights
+      const hlEl = document.getElementById('pHighlights');
+      if (data.highlights && data.highlights.length) {
+        hlEl.style.display = 'block';
+        hlEl.innerHTML = `<div class="sec-title">Highlights</div><ul class="hl-list">${data.highlights.map(h => `<li class="${isRes ? 'wine' : ''}">${h}</li>`).join('')}</ul>`;
+      } else hlEl.style.display = 'none';
+
+      // Timeline
+      const tlEl = document.getElementById('pTimeline');
+      if (data.timeline && data.timeline.length) {
+        tlEl.style.display = 'block';
+        tlEl.innerHTML = `<div class="sec-title">Timeline</div><div class="tl">${data.timeline.map(t => `<div class="tl-row"><span class="tl-yr">${t.y}</span><span class="tl-dot"></span><span class="tl-text">${t.t}</span></div>`).join('')}</div>`;
+      } else tlEl.style.display = 'none';
+
+      // Facilities (campus summary)
+      const facEl = document.getElementById('pFacilities');
+      if (type === 'campus') {
+        const blds = BUILDINGS.filter(b => b.cid === data.id);
+        if (blds.length) {
+          facEl.style.display = 'block';
+          facEl.innerHTML = `<div class="sec-title">Buildings &amp; Spaces (${blds.length})</div><div class="fac-wrap">${blds.slice(0, 16).map(b => `<span class="fac-chip">${b.name}</span>`).join('')}</div>`;
+        } else facEl.style.display = 'none';
+      } else facEl.style.display = 'none';
+
+      // Focus button
+      const fb = document.getElementById('focusBtn');
+      fb.style.display = 'flex';
+      fb.className = 'focus-btn' + (isRes ? ' wine' : '');
+      fb.onclick = () => { if (coords) map.flyTo(coords, type === 'campus' ? 17 : 19, { animate: true, duration: 1.0 }); };
+    }
+
+    function renderHero(id, cat, type, isRes, planned) {
+      const hero = document.getElementById('pHero');
+      const src = getHeroSrc(id, cat);
+      const badge = planned ? 'Planned' : type === 'campus' ? 'DTI Campus' : cap(cat || 'Building');
+      hero.innerHTML = `
+    <img src="${src}" alt="${badge}" style="width:100%;height:100%;object-fit:cover;transition:transform .55s var(--ease)"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="p-hero-ph" style="display:none">
+      <span>${C_PH[id]?.icon || catIcon(cat)}</span>
+      <small>Add photo here</small>
+    </div>
+    <div class="p-hero-overlay"></div>
+    <div class="p-hero-badge">${badge}</div>`;
+      hero.querySelector('img').addEventListener('mouseover', e => e.target.style.transform = 'scale(1.04)');
+      hero.querySelector('img').addEventListener('mouseout', e => e.target.style.transform = '');
+    }
+
+    function renderGallery(id, type) {
+      const sec = document.getElementById('pGallery');
+      const strip = document.getElementById('galleryStrip');
+      strip.innerHTML = '';
+      sec.style.display = 'block';
+      const realItems = IMG.gallery[id] || [];
+      const slots = G_SLOTS[id] || [['📍', 'Photo']];
+      const count = Math.max(realItems.filter(Boolean).length, slots.length);
+
+      for (let i = 0; i < count; i++) {
+        const real = realItems[i];
+        const [phIcon, phLabel] = slots[i] || slots[0];
+        const div = document.createElement('div');
+        if (real && real.src) {
+          div.className = 'g-item';
+          div.innerHTML = `<img src="${real.src}" alt="${real.caption || ''}">
+        <div class="g-caption">${real.caption || ''}</div>`;
+          div.addEventListener('click', () => openLb(real.src, real.caption || ''));
+        } else {
+          div.className = 'g-item ph';
+          div.innerHTML = `<div class="g-item-ph"><span>${phIcon}</span><small>${phLabel}</small></div>`;
+          div.title = `Add a photo for "${phLabel}" in IMG.gallery["${id}"]`;
+        }
+        strip.appendChild(div);
+      }
+    }
+
+    function closePanel() {
+      const panel = document.getElementById('infoPanel');
+      panel.classList.remove('open');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+
+    // ── Lightbox ─────────────────────────────────────────────────────
+    function openLb(src, alt) {
+      document.getElementById('lbImg').src = src;
+      document.getElementById('lbImg').alt = alt;
+      document.getElementById('lb').classList.add('open');
+    }
+    function closeLb() { document.getElementById('lb').classList.remove('open'); }
+
+    // ── Sidebar lists ─────────────────────────────────────────────────
+    function renderCampuses() {
+      const list = document.getElementById('navList');
+      list.innerHTML = '';
+      const roleMap = { academic: ['academic'], hostel: ['residential', 'hostel'], hybrid: ['hybrid'], workshop: ['workshop-administrative'], wellness: ['wellness'] };
+      const filtered = CAMPUSES.filter(c => {
+        if (activeChip === 'all') return true;
+        if (activeChip === 'planned') return c.planned;
+        const roles = roleMap[activeChip];
+        return roles && roles.some(r => c.role.includes(r));
+      });
+      if (!filtered.length) { list.innerHTML = '<div class="empty-st">No campuses match this filter.</div>'; return; }
+
+      const hdr = document.createElement('div');
+      hdr.innerHTML = `<div class="grp-lbl">Campuses <span class="grp-count">${filtered.length}</span></div>`;
+      list.appendChild(hdr);
+
+      filtered.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'c-card'; btn.dataset.id = c.id;
+        if (activeCampus?.id === c.id) btn.classList.add('on');
+        const dot = resRole(c.role) ? 'var(--wine)' : 'var(--gold)';
+        const thumbSrc = IMG.thumb[c.id];
+        const thumbHtml = thumbSrc ? `<img src="${thumbSrc}" alt="${c.name}">` : c.icon;
+        btn.innerHTML = `<div class="c-thumb">${thumbHtml}</div>
+      <div class="c-body"><div class="c-name">${c.name}</div><div class="c-role">${roleLabel(c.role)}</div></div>
+      <span class="c-dot" style="background:${dot}"></span>`;
+        btn.addEventListener('click', () => selectCampus(c.id));
+        list.appendChild(btn);
+      });
+    }
+
+    function renderBuildings(cid) {
+      const list = document.getElementById('navList');
+      list.innerHTML = '';
+      const blds = BUILDINGS.filter(b => b.cid === cid);
+      if (!blds.length) { list.innerHTML = '<div class="empty-st">No building data yet.</div>'; return; }
+      const grouped = {};
+      blds.forEach(b => { (grouped[b.cat] || (grouped[b.cat] = [])).push(b); });
+      Object.entries(grouped).forEach(([cat, items]) => {
+        const gh = document.createElement('div');
+        gh.className = 'grp-lbl';
+        gh.innerHTML = `${cap(cat)} <span class="grp-count">${items.length}</span>`;
+        list.appendChild(gh);
+        items.forEach(b => {
+          const btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'b-item'; btn.dataset.id = b.id;
+          if (selId === b.id) btn.classList.add('on');
+          const dot = b.planned ? 'var(--wine)' : 'var(--gold)';
+          btn.innerHTML = `<span class="b-dot" style="background:${dot}"></span>
+        <span class="b-body"><span class="b-name">${b.name}</span><span class="b-sub">${b.desc}</span></span>
+        <span class="b-badge">${b.planned ? 'Planned' : cap(b.cat)}</span>`;
+          btn.addEventListener('click', () => selectBuilding(b.id));
+          list.appendChild(btn);
+        });
+      });
+    }
+
+    // ── Chips ─────────────────────────────────────────────────────────
+    function initChips() {
+      const c = document.getElementById('chipInner');
+      CHIPS.forEach(ch => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'chip' + (ch.id === activeChip ? ' on' : '');
+        btn.textContent = ch.l;
+        btn.addEventListener('click', () => {
+          activeChip = ch.id;
+          c.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+          btn.classList.add('on');
+          if (mode === 'global') renderCampuses();
+        });
+        c.appendChild(btn);
+      });
+    }
+
+    // ── Search ────────────────────────────────────────────────────────
+    function initSearch() {
+      const inp = document.getElementById('srchInput'), drop = document.getElementById('srchDrop'), clr = document.getElementById('srchClear');
+      let t;
+      inp.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => doSearch(inp.value), 110); });
+      inp.addEventListener('focus', () => { if (inp.value) doSearch(inp.value); });
+      clr.addEventListener('click', () => { inp.value = ''; drop.classList.remove('open'); drop.innerHTML = ''; });
+      document.addEventListener('click', e => { if (!e.target.closest('#srchWrap')) drop.classList.remove('open'); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Escape') { inp.value = ''; drop.classList.remove('open'); } });
+    }
+
+    function doSearch(q) {
+      const drop = document.getElementById('srchDrop');
+      q = q.trim().toLowerCase();
+      if (!q) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+      const res = [];
+      CAMPUSES.forEach(c => { if (c.name.toLowerCase().includes(q) || (c.region || '').toLowerCase().includes(q)) res.push({ type: 'campus', data: c }); });
+      BUILDINGS.forEach(b => { if (b.name.toLowerCase().includes(q) || b.cat.toLowerCase().includes(q)) res.push({ type: 'building', data: b }); });
+      if (!res.length) { drop.innerHTML = `<div class="sr-empty">No results for "${q}"</div>`; drop.classList.add('open'); return; }
+      drop.innerHTML = res.slice(0, 10).map(r => {
+        const isC = r.type === 'campus';
+        const hi = r.data.name.replace(new RegExp(q, 'gi'), m => `<mark>${m}</mark>`);
+        const meta = isC ? roleLabel(r.data.role) : (CAMPUSES.find(c => c.id === r.data.cid)?.name || '');
+        return `<div class="sr-item" data-type="${r.type}" data-id="${r.data.id}">
+      <div class="sr-icon">${isC ? r.data.icon : catIcon(r.data.cat)}</div>
+      <div style="flex:1;min-width:0"><div class="sr-name">${hi}</div><div class="sr-meta">${meta}</div></div>
+      <span class="sr-badge">${isC ? 'Campus' : cap(r.data.cat)}</span>
+    </div>`;
+      }).join('');
+      drop.querySelectorAll('.sr-item').forEach(el => {
+        el.addEventListener('click', () => {
+          document.getElementById('srchInput').value = ''; drop.classList.remove('open'); drop.innerHTML = '';
+          if (el.dataset.type === 'campus') selectCampus(el.dataset.id);
+          else { const b = BUILDINGS.find(x => x.id === el.dataset.id); if (b) { selectCampus(b.cid); setTimeout(() => selectBuilding(b.id), 1400); } }
+        });
+      });
+      drop.classList.add('open');
+    }
+
+    // ── Controls ──────────────────────────────────────────────────────
+    function initControls() {
+      document.getElementById('homeBtn').addEventListener('click', goBack);
+      document.getElementById('zIn').addEventListener('click', () => map.zoomIn(.5));
+      document.getElementById('zOut').addEventListener('click', () => map.zoomOut(.5));
+      document.getElementById('pClose').addEventListener('click', closePanel);
+      document.getElementById('backBtn').addEventListener('click', goBack);
+      document.getElementById('mobToggle').addEventListener('click', () => {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('mobOverlay');
+        const open = sb.classList.toggle('open');
+        ov.classList.toggle('open', open);
+        // pointer-events so overlay is only clickable when visible
+        ov.style.pointerEvents = open ? 'auto' : 'none';
+      });
+      document.getElementById('mobOverlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        const ov = document.getElementById('mobOverlay');
+        ov.classList.remove('open');
+        ov.style.pointerEvents = 'none';
+      });
+      // Dark mode toggle — persist choice across reloads
+      const _dark = localStorage.getItem('dti-theme') === 'dark';
+      if (_dark) document.body.classList.add('dark');
+      document.getElementById('themeBtn').addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark');
+        localStorage.setItem('dti-theme', isDark ? 'dark' : 'light');
+        if (typeof window._swapMapTiles === 'function') window._swapMapTiles(isDark);
+      });
+      document.getElementById('routeBtn').addEventListener('click', () => {
+        routesOn = !routesOn;
+        document.getElementById('routeBtn').classList.toggle('on', routesOn);
+        routesOn ? drawRoutes() : clearRoutes();
+      });
+      document.getElementById('lb').addEventListener('click', closeLb);
+      document.getElementById('lbClose').addEventListener('click', e => { e.stopPropagation(); closeLb(); });
+    }
+
+    function drawRoutes() {
+      clearRoutes();
+      const ec = CAMPUSES.filter(c => c.region.includes('East Legon'));
+      for (let i = 0; i < ec.length - 1; i++) for (let j = i + 1; j < ec.length; j++)
+        rtGroup.addLayer(L.polyline([ec[i].coords, ec[j].coords], { color: '#C8952A', weight: 1.8, opacity: .4, dashArray: '5 5' }));
+      rtGroup.addTo(map);
+    }
+    function clearRoutes() { rtGroup.clearLayers(); map.removeLayer(rtGroup); }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    function resRole(r) { return ['residential', 'hostel', 'hybrid', 'staff-residential'].includes(r); }
+    function resCat(c) { return ['hostel', 'wellness'].includes(c); }
+    function addTag(el, text, cls) { const s = document.createElement('span'); s.className = 'p-tag' + (cls ? ' ' + cls : ''); s.textContent = text; el.appendChild(s); }
+    function roleLabel(r) { return { academic: 'Academic Hub', hybrid: 'Hybrid Campus + Hostel', wellness: 'Wellness + Residential', 'workshop-administrative': 'Workshop + PMU', 'staff-residential': 'Staff Residence', residential: 'Boys Hostel', 'planned-multi-skills': 'Multi-Skills Campus (Planned)' }[r] || r; }
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       DIRECTIONS SYSTEM v2 — OSRM real routing + detailed voice + live nav
+    ══════════════════════════════════════════════════════════════════ */
+    (function () {
+      'use strict';
+
+      var _started = false;
+      function start() {
+        if (_started) return; _started = true;
+        init();
+        setTimeout(initDir, 0);
+      }
+      if (document.readyState === 'complete') { start(); }
+      else { window.addEventListener('load', start); }
+
+      /* ── State ──────────────────────────────────────────────────── */
+      var routeLayer      = null;
+      var startMarker     = null;   // custom start marker with "Start Moving" button
+      var currentSteps    = [];     // computed steps array
+      var currentFrom     = null;
+      var currentTo       = null;
+      var navActive       = false;
+      var navStepIdx      = 0;
+      var navWatchId      = null;
+      var navUserMarker   = null;   // blue dot for live position
+      var _audioWaveEl    = null;   // set in initDir
+
+      /* ── Math helpers ────────────────────────────────────────────── */
+      function haversineM(a, b) {
+        var R = 6371000, r = Math.PI / 180;
+        var dlat = (b[0] - a[0]) * r, dlon = (b[1] - a[1]) * r;
+        var x = Math.sin(dlat/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dlon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+      }
+      function fmtM(m) { return m < 1000 ? Math.round(m)+'m' : +(m/1000).toFixed(1)+'km'; }
+      function fmtMin(m) { var t = Math.max(1, Math.round(m/75)); return t===1?'~1 min':'~'+t+' mins'; }
+      function bearing(a, b) {
+        var r=Math.PI/180, dL=(b[1]-a[1])*r;
+        var y=Math.sin(dL)*Math.cos(b[0]*r);
+        var x=Math.cos(a[0]*r)*Math.sin(b[0]*r)-Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos(dL);
+        return ((Math.atan2(y,x)*180/Math.PI)+360)%360;
+      }
+      function cardinal(d) {
+        return ['north','northeast','east','southeast','south','southwest','west','northwest'][Math.round(d/45)%8];
+      }
+      function dirArrow(d) {
+        var arrows = ['⬆️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️'];
+        return arrows[Math.round(d/45)%8];
+      }
+
+      /* ── Resolve location value ──────────────────────────────────── */
+      function resolve(val) {
+        if (!val) return null;
+        var sep = val.indexOf(':');
+        if (sep < 0) return null;
+        var type = val.slice(0,sep), id = val.slice(sep+1);
+        if (type==='campus')   return CAMPUSES.find(c=>c.id===id)||null;
+        if (type==='building') return BUILDINGS.find(b=>b.id===id)||null;
+        return null;
+      }
+
+      /* ── Populate dropdowns ─────────────────────────────────────── */
+      function populate() {
+        var mk = function() {
+          var h = '<option value="">Select a location\u2026</option>';
+          CAMPUSES.forEach(function(c){
+            h += '<optgroup label="'+c.name+'">';
+            h += '<option value="campus:'+c.id+'">'+c.icon+' '+c.name+' (Campus)</option>';
+            BUILDINGS.filter(function(b){return b.cid===c.id;}).forEach(function(b){
+              h += '<option value="building:'+b.id+'">\u2003'+catIcon(b.cat)+' '+b.name+'</option>';
+            });
+            h += '</optgroup>';
+          });
+          return h;
+        };
+        document.getElementById('dirFrom').innerHTML = mk();
+        document.getElementById('dirTo').innerHTML   = mk();
+      }
+
+      /* ══════════════════════════════════════════════════════════════
+         OSRM REAL-ROAD ROUTING
+         Uses the public OSRM demo server (walking profile).
+         Falls back to straight-line campus route if offline/blocked.
+      ══════════════════════════════════════════════════════════════ */
+      function fetchOSRMRoute(fromCoords, toCoords, callback) {
+        // OSRM public API — walking profile
+        var url = 'https://router.project-osrm.org/route/v1/foot/'
+          + fromCoords[1]+','+fromCoords[0]+';'
+          + toCoords[1]+','+toCoords[0]
+          + '?overview=full&geometries=geojson&steps=true&annotations=false';
+
+        fetch(url)
+          .then(function(r){ return r.json(); })
+          .then(function(data){
+            if (!data.routes || !data.routes.length) { callback(null); return; }
+            var route = data.routes[0];
+            // Extract polyline points from GeoJSON
+            var coords = route.geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
+            // Extract OSRM turn-by-turn steps
+            var steps = [];
+            route.legs.forEach(function(leg){
+              leg.steps.forEach(function(step, si){
+                if (!step.maneuver) return;
+                var man = step.maneuver;
+                var dist = step.distance;
+                var dur  = step.duration;
+                if (dist < 2 && si > 0) return; // skip tiny micro-steps
+                var action = buildOSRMStepText(man, step.name, dist, si, leg.steps.length);
+                steps.push({
+                  action:  action.primary,
+                  detail:  action.detail,
+                  dist:    dist,
+                  duration: dur,
+                  manType: man.type,
+                  manMod:  man.modifier || '',
+                  coords:  [man.location[1], man.location[0]]
+                });
+              });
+            });
+            callback({ pts: coords, steps: steps, totalDist: route.distance, totalDuration: route.duration });
+          })
+          .catch(function(){ callback(null); });
+      }
+
+      function buildOSRMStepText(man, streetName, dist, stepIdx, totalSteps) {
+        var street = streetName && streetName !== '' ? '"' + streetName + '"' : 'the path';
+        var mod = man.modifier || '';
+        var type = man.type || '';
+        var distStr = fmtM(dist);
+        var primary = '', detail = '';
+
+        if (stepIdx === 0 || type === 'depart') {
+          primary = 'Head ' + (mod ? mod + ' on ' : 'along ') + street;
+          detail  = 'Walk ' + distStr + ' to begin your route.';
+        } else if (type === 'arrive' || stepIdx === totalSteps - 1) {
+          primary = 'Arrive at your destination';
+          detail  = 'You have reached ' + street + '.';
+        } else if (type === 'turn') {
+          var turnWord = mod.includes('right') ? 'Turn right' : mod.includes('left') ? 'Turn left' : 'Turn ' + mod;
+          primary = turnWord + ' onto ' + street;
+          detail  = 'Walk ' + distStr + ' after turning.';
+        } else if (type === 'continue') {
+          primary = 'Continue straight on ' + street;
+          detail  = 'Keep going straight for ' + distStr + '.';
+        } else if (type === 'roundabout' || type === 'rotary') {
+          var exit = man.exit ? 'Take exit ' + man.exit + ' at the roundabout' : 'Enter the roundabout';
+          primary = exit;
+          detail  = 'Then follow ' + street + ' for ' + distStr + '.';
+        } else if (type === 'fork') {
+          primary = 'Keep ' + (mod||'straight') + ' at the fork';
+          detail  = 'Follow ' + street + ' for ' + distStr + '.';
+        } else if (type === 'merge') {
+          primary = 'Merge onto ' + street;
+          detail  = 'Continue for ' + distStr + '.';
+        } else {
+          primary = cap(type) + (mod ? ' ' + mod : '') + (street !== 'the path' ? ' onto ' + street : '');
+          detail  = 'Continue for ' + distStr + '.';
+        }
+        return { primary: primary, detail: detail };
+      }
+
+      /* ── Fallback straight-line route (campus-aware) ─────────────── */
+      function buildFallbackRoute(from, to) {
+        var pts = [from.coords.slice()];
+        var fcid = from.cid || from.id, tcid = to.cid || to.id;
+        if (fcid !== tcid) {
+          var fc = CAMPUSES.find(function(c){ return c.id === fcid; });
+          var tc = CAMPUSES.find(function(c){ return c.id === tcid; });
+          if (fc) pts.push(fc.coords.slice());
+          if (tc) pts.push(tc.coords.slice());
+        }
+        pts.push(to.coords.slice());
+        var uniq = pts.filter(function(p,i){ return i===0||!(p[0]===pts[i-1][0]&&p[1]===pts[i-1][1]); });
+        var steps = [];
+        for (var i = 0; i < uniq.length - 1; i++) {
+          var a = uniq[i], b = uniq[i+1];
+          var dist = haversineM(a, b);
+          var brng  = bearing(a, b);
+          var dir   = cardinal(brng);
+          var first = i===0, last = i===uniq.length-2;
+          var action, detail;
+          if (first && last) {
+            action = 'Head ' + dir + ' toward ' + to.name;
+            detail = 'Walk ' + fmtM(dist) + ' directly from ' + from.name + ' to reach your destination.';
+          } else if (first) {
+            var campName = (CAMPUSES.find(function(c){return c.id===fcid;})||{}).name||'campus';
+            action = 'Leave ' + from.name + ' and head ' + dir;
+            detail = 'Walk ' + fmtM(dist) + ' heading ' + dir + ' through the ' + campName + ' grounds.';
+          } else if (last) {
+            action = 'Arrive at ' + to.name;
+            detail = 'Continue ' + dir + ' for ' + fmtM(dist) + ' — your destination is directly ahead.';
+          } else {
+            var midC = CAMPUSES.find(function(c){return c.coords[0]===b[0]&&c.coords[1]===b[1];});
+            action = 'Continue ' + dir + ' through ' + (midC?midC.name:'the campus grounds');
+            detail = 'Walk ' + fmtM(dist) + ' keeping to the main path between campuses.';
+          }
+          steps.push({ action:action, detail:detail, dist:dist, coords:a });
+        }
+        return { pts:uniq, steps:steps };
+      }
+
+      /* ── Map drawing ─────────────────────────────────────────────── */
+      function drawRouteOnMap(from, to, pts, steps) {
+        clearRoute();
+
+        // Animated dashed polyline — gold route line
+        var routeLine = L.polyline(pts, {
+          color:'#C8952A', weight:6, opacity:.95,
+          dashArray:'12 7', lineCap:'round', lineJoin:'round'
+        });
+
+        // Blue walking-dot at each waypoint step
+        var stepDots = steps.slice(1,-1).map(function(s){
+          if (!s.coords) return null;
+          return L.circleMarker(s.coords, {
+            radius:4, fillColor:'#fff', fillOpacity:.85,
+            color:'#C8952A', weight:2, zIndexOffset:300
+          });
+        }).filter(Boolean);
+
+        // START marker — gold with "Start Moving" popup
+        var startHtml =
+          '<div style="position:relative;text-align:center">' +
+          '<div style="background:var(--gold);width:36px;height:36px;border-radius:50%;border:3px solid #fff;' +
+          'display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;' +
+          'box-shadow:0 4px 14px rgba(200,149,42,.6);margin:0 auto">A</div>' +
+          '<button class="start-nav-popup" id="startNavPopupBtn" onclick="window.__dtiStartNav()">▶ Start Moving</button>' +
+          '</div>';
+        var startIcon = L.divIcon({ html:startHtml, className:'', iconSize:[80,56], iconAnchor:[40,36] });
+        startMarker = L.marker(pts[0], { icon:startIcon, zIndexOffset:900 });
+
+        // END marker — wine/red
+        var endHtml = '<div style="background:#821E38;width:36px;height:36px;border-radius:50%;border:3px solid #fff;'+
+          'display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;'+
+          'box-shadow:0 4px 14px rgba(130,30,56,.5)">B</div>';
+        var endIcon = L.divIcon({ html:endHtml, className:'', iconSize:[36,36], iconAnchor:[18,18] });
+        var endMarker = L.marker(pts[pts.length-1], { icon:endIcon, zIndexOffset:800 });
+
+        var layers = [routeLine, startMarker, endMarker].concat(stepDots);
+        routeLayer = L.layerGroup(layers).addTo(map);
+        map.flyToBounds(L.latLngBounds(pts), { padding:[80,80], maxZoom:18, animate:true, duration:1.3 });
+      }
+
+      function clearRoute() {
+        if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+        startMarker = null;
+        stopNavigation();
+      }
+
+      /* ── Voice helpers ───────────────────────────────────────────── */
+      var _voiceCache = null;
+      function getBestVoice() {
+        if (_voiceCache) return _voiceCache;
+        var voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        _voiceCache = voices.find(function(v){ return /en[-_]GB|en[-_]US/i.test(v.lang)&&/female|zira|samantha|karen|moira|fiona|google us english/i.test(v.name); })
+          || voices.find(function(v){ return /en[-_]GB|en[-_]US/i.test(v.lang); })
+          || voices.find(function(v){ return /en/i.test(v.lang); }) || null;
+        return _voiceCache;
+      }
+      function speakText(text, onDone) {
+        if (!window.speechSynthesis) { if(onDone) onDone(); return; }
+        window.speechSynthesis.cancel();
+        if (_audioWaveEl) _audioWaveEl.classList.remove('stopped');
+        var msg = new SpeechSynthesisUtterance(text);
+        msg.rate=0.93; msg.pitch=1.04; msg.volume=1;
+        var v = getBestVoice(); if(v) msg.voice=v;
+        msg.onend  = function(){ if(_audioWaveEl) _audioWaveEl.classList.add('stopped'); if(onDone) onDone(); };
+        msg.onerror = function(){ if(_audioWaveEl) _audioWaveEl.classList.add('stopped'); if(onDone) onDone(); };
+        window.speechSynthesis.speak(msg);
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = function(){ _voiceCache=null; getBestVoice(); };
+      }
+
+      /* ── Build full spoken route narration ───────────────────────── */
+      function buildSpokenDirections(from, to, steps, totalDist) {
+        var lines = [];
+        lines.push('Route from ' + from.name + ' to ' + to.name + '.');
+        lines.push('Total walking distance: ' + fmtM(totalDist) + ', approximately ' + fmtMin(totalDist) + '.');
+        lines.push('Here are your step by step directions.');
+        steps.forEach(function(s, i){
+          lines.push('Step ' + (i+1) + '. ' + s.action + '. ' + s.detail);
+        });
+        lines.push('You have reached your destination: ' + to.name + '. Enjoy your visit!');
+        return lines.join(' ');
+      }
+
+      /* ── Render detailed step list in panel ─────────────────────── */
+      function renderSteps(from, to, steps, totalDist) {
+        var res = document.getElementById('dirResults');
+        var fi = from.icon || catIcon(from.cat) || '📍';
+        var ti = to.icon || catIcon(to.cat) || '🏁';
+
+        // Voice banner
+        var voiceBannerHtml =
+          '<div class="dir-voice-banner" id="dirVoiceBanner">' +
+          '<div class="dir-voice-avatar">🎙️</div>' +
+          '<div class="dir-voice-text"><strong>Navigator</strong> Directions are ready. Tap to hear them spoken aloud.</div>' +
+          '<button class="dir-replay-btn" id="dirReplayVoice">🔊 Play</button>' +
+          '</div>';
+
+        // Summary banner
+        var summaryHtml =
+          '<div class="dir-banner">' +
+          '<div class="dir-ban-cell"><div class="dir-ban-lbl">From</div>' +
+          '<div class="dir-ban-val gold">' + fi + ' ' + from.name + '</div></div>' +
+          '<div class="dir-ban-cell"><div class="dir-ban-lbl">To</div>' +
+          '<div class="dir-ban-val wine">' + ti + ' ' + to.name + '</div></div>' +
+          '<div class="dir-ban-cell" style="flex:0 0 auto;padding:12px 16px;border-left:1px solid var(--gold-ring)">' +
+          '<div class="dir-ban-lbl">Walk</div>' +
+          '<div class="dir-ban-val" style="font-size:12px">' + fmtM(totalDist) + '<br>' + fmtMin(totalDist) + '</div>' +
+          '</div></div>';
+
+        // Start nav button
+        var startNavHtml =
+          '<button class="dir-start-nav" id="dirStartNavBtn">' +
+          '<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
+          'Start Turn-by-Turn Navigation' +
+          '</button>';
+
+        // Steps
+        var stepsHtml =
+          '<div><div class="dir-steps-title">Step-by-step directions (' + steps.length + ' steps)</div>' +
+          '<div class="dir-steps">' +
+          steps.map(function(s, i){
+            var num = i===0 ? 'A' : i===steps.length-1 ? 'B' : String(i+1);
+            var numStyle = i===0 ? '' : i===steps.length-1 ? 'style="background:var(--wine);border-color:var(--wine);color:#fff"' : '';
+            return '<div class="dir-step">' +
+              '<div class="dir-step-num" '+numStyle+'>' + num + '</div>' +
+              '<div class="dir-step-body">' +
+              '<div class="dir-step-action">' + s.action + '</div>' +
+              '<div class="dir-step-detail">' + s.detail + '</div>' +
+              '<span class="dir-step-chip">🚶 ' + fmtM(s.dist) + '</span>' +
+              '</div></div>';
+          }).join('') +
+          '</div></div>';
+
+        var clearHtml = '<button class="dir-clear" id="dirClearBtn">✕ Clear route</button>';
+
+        res.innerHTML = voiceBannerHtml + summaryHtml + startNavHtml + stepsHtml + clearHtml;
+
+        // Wire replay button
+        var replayBtn = document.getElementById('dirReplayVoice');
+        if (replayBtn) {
+          replayBtn.addEventListener('click', function(){
+            var spoken = buildSpokenDirections(from, to, steps, totalDist);
+            speakText(spoken);
+          });
+        }
+
+        // Wire start nav button
+        var startNavBtn = document.getElementById('dirStartNavBtn');
+        if (startNavBtn) {
+          startNavBtn.addEventListener('click', function(){
+            startNavigation(steps, from, to, totalDist);
+          });
+        }
+
+        // Wire clear
+        var clearBtn = document.getElementById('dirClearBtn');
+        if (clearBtn) clearBtn.addEventListener('click', resetAll);
+
+        // Auto-speak directions after a short pause
+        setTimeout(function(){
+          var spoken = buildSpokenDirections(from, to, steps, totalDist);
+          speakText(spoken);
+        }, 600);
+      }
+
+      /* ── Compute route (OSRM → fallback) ──────────────────────────── */
+      function compute() {
+        var from = resolve(document.getElementById('dirFrom').value);
+        var to   = resolve(document.getElementById('dirTo').value);
+        if (!from || !to) return;
+
+        currentFrom = from; currentTo = to;
+
+        // Show spinner while fetching OSRM
+        document.getElementById('dirResults').innerHTML =
+          '<div class="dir-routing-spinner">Calculating real walking route…</div>';
+
+        fetchOSRMRoute(from.coords, to.coords, function(osrmResult){
+          var pts, steps, totalDist;
+
+          if (osrmResult && osrmResult.steps && osrmResult.steps.length) {
+            pts       = osrmResult.pts;
+            steps     = osrmResult.steps;
+            totalDist = osrmResult.totalDist;
+          } else {
+            // Fallback: straight-line through campus waypoints
+            var fallback = buildFallbackRoute(from, to);
+            pts   = fallback.pts;
+            steps = fallback.steps;
+            totalDist = steps.reduce(function(s,x){ return s+x.dist; }, 0);
+          }
+
+          currentSteps = steps;
+          drawRouteOnMap(from, to, pts, steps);
+          renderSteps(from, to, steps, totalDist);
+
+          // Expose start nav to global scope so the map popup button can call it
+          window.__dtiStartNav = function(){ startNavigation(steps, from, to, totalDist); };
+        });
+      }
+
+      /* ══════════════════════════════════════════════════════════════
+         LIVE TURN-BY-TURN NAVIGATION
+      ══════════════════════════════════════════════════════════════ */
+      function startNavigation(steps, from, to, totalDist) {
+        if (!steps || !steps.length) return;
+        navActive   = true;
+        navStepIdx  = 0;
+        currentSteps = steps;
+        currentFrom  = from;
+        currentTo    = to;
+
+        var hud = document.getElementById('navHud');
+        hud.classList.add('active');
+
+        // Wire HUD controls
+        document.getElementById('navPrev').onclick = function(){ advanceStep(-1); };
+        document.getElementById('navNext').onclick = function(){ advanceStep(1); };
+        document.getElementById('navStop').onclick = function(){ stopNavigation(); };
+
+        // Speak step 0
+        updateHUD(0);
+        speakStep(0);
+
+        // Start GPS tracking for auto-advance
+        if (navigator.geolocation) {
+          navWatchId = navigator.geolocation.watchPosition(
+            function(pos){ handleNavPosition(pos.coords.latitude, pos.coords.longitude); },
+            function(){},
+            { enableHighAccuracy:true, maximumAge:3000 }
+          );
+        }
+
+        // Scroll map to start
+        if (steps[0] && steps[0].coords) {
+          map.panTo(steps[0].coords, { animate:true, duration:.6 });
+        }
+      }
+
+      function stopNavigation() {
+        navActive = false;
+        var hud = document.getElementById('navHud');
+        if (hud) hud.classList.remove('active');
+        if (navWatchId !== null) { navigator.geolocation.clearWatch(navWatchId); navWatchId = null; }
+        if (navUserMarker) { map.removeLayer(navUserMarker); navUserMarker = null; }
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+
+      function advanceStep(delta) {
+        var next = navStepIdx + delta;
+        if (next < 0 || next >= currentSteps.length) {
+          if (delta > 0) {
+            speakText('You have arrived at ' + (currentTo ? currentTo.name : 'your destination') + '. Navigation complete.');
+            setTimeout(stopNavigation, 3000);
+          }
+          return;
+        }
+        navStepIdx = next;
+        updateHUD(navStepIdx);
+        speakStep(navStepIdx);
+      }
+
+      function updateHUD(idx) {
+        var step   = currentSteps[idx];
+        var total  = currentSteps.length;
+        var pct    = total > 1 ? Math.round((idx / (total-1)) * 100) : 100;
+        var arrows = ['⬆️','↗️','➡️','↘️','⬇️','↙️','⬅️','↖️'];
+
+        // Pick arrow based on maneuver modifier if available, else step bearing
+        var arrowEmoji = '➡️';
+        if (step.manMod) {
+          if (step.manMod.includes('right'))       arrowEmoji = step.manMod.includes('sharp') ? '↪️' : '↗️';
+          else if (step.manMod.includes('left'))   arrowEmoji = step.manMod.includes('sharp') ? '↩️' : '↖️';
+          else if (step.manMod.includes('straight')) arrowEmoji = '⬆️';
+          else if (step.manMod.includes('uturn')) arrowEmoji = '🔄';
+        } else if (step.coords && currentSteps[idx+1] && currentSteps[idx+1].coords) {
+          var brng = bearing(step.coords, currentSteps[idx+1].coords);
+          arrowEmoji = arrows[Math.round(brng/45)%8];
+        }
+
+        document.getElementById('navHudArrow').textContent    = arrowEmoji;
+        document.getElementById('navHudAction').textContent   = step.action;
+        document.getElementById('navHudDetail').textContent   = step.detail;
+        document.getElementById('navHudDistVal').textContent  = fmtM(step.dist);
+        document.getElementById('navHudFill').style.width     = pct + '%';
+        document.getElementById('navHudCount').textContent    = 'Step ' + (idx+1) + ' of ' + total;
+
+        // Pan map to step location
+        if (step.coords) map.panTo(step.coords, { animate:true, duration:.5 });
+
+        // Dim prev / next buttons at boundaries
+        document.getElementById('navPrev').disabled = (idx === 0);
+        document.getElementById('navNext').textContent = idx === total-1 ? '🏁 Finish' : 'Next ▶';
+      }
+
+      function speakStep(idx) {
+        var step = currentSteps[idx];
+        if (!step) return;
+        var total = currentSteps.length;
+        var prefix = idx === 0 ? 'Starting navigation. ' : idx === total-1 ? 'Final step. ' : 'Step ' + (idx+1) + '. ';
+        speakText(prefix + step.action + '. ' + step.detail);
+      }
+
+      // Auto-advance when user is close to the next step waypoint
+      function handleNavPosition(lat, lng) {
+        // Update or create user dot
+        var pos = [lat, lng];
+        if (!navUserMarker) {
+          var userIcon = L.divIcon({
+            html:'<div style="width:16px;height:16px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 2px 8px rgba(37,99,235,.5)"></div>',
+            className:'', iconSize:[16,16], iconAnchor:[8,8]
+          });
+          navUserMarker = L.marker(pos, { icon:userIcon, zIndexOffset:1000 }).addTo(map);
+        } else {
+          navUserMarker.setLatLng(pos);
+        }
+
+        // Check if within 15m of next step waypoint → auto-advance
+        var nextIdx = navStepIdx + 1;
+        if (nextIdx < currentSteps.length && currentSteps[nextIdx].coords) {
+          var d = haversineM(pos, currentSteps[nextIdx].coords);
+          if (d < 15) { advanceStep(1); }
+        }
+      }
+
+      /* ── State helpers ─────────────────────────────────────────── */
+      function refreshGo() {
+        var f = document.getElementById('dirFrom').value;
+        var t = document.getElementById('dirTo').value;
+        document.getElementById('dirGo').disabled = !(f && t && f !== t);
+      }
+
+      function resetAll() {
+        clearRoute();
+        stopNavigation();
+        document.getElementById('dirFrom').value = '';
+        document.getElementById('dirTo').value   = '';
+        document.getElementById('dirAiInp').value = '';
+        refreshGo();
+        document.getElementById('dirResults').innerHTML =
+          '<div class="dir-empty">' +
+          '<div class="dir-empty-icon">🧭</div>' +
+          '<div class="dir-empty-title">Campus Navigation</div>' +
+          '<div class="dir-empty-sub">Choose a starting point and destination, or type your question to get real walking directions.</div>' +
+          '</div>';
+      }
+
+      /* ── AI / plain-English query ─────────────────────────────── */
+      function askAI() {
+        var inp = document.getElementById('dirAiInp');
+        var btn = document.getElementById('dirAiSend');
+        var q   = inp.value.trim().toLowerCase();
+        if (!q) { btn.disabled=false; btn.classList.remove('busy'); return; }
+
+        var locations = [];
+        CAMPUSES.forEach(function(c){ locations.push({ id:'campus:'+c.id, name:c.name.toLowerCase(), keywords:[c.id,c.name.toLowerCase()], campus:c.name }); });
+        BUILDINGS.forEach(function(b){
+          var cn = (CAMPUSES.find(function(c){return c.id===b.cid;})||{}).name||b.cid;
+          var kw = [b.id,b.name.toLowerCase(),cn.toLowerCase()];
+          var short = b.name.replace(/^(the|edna|edith|mc)\s*/i,'').trim().toLowerCase();
+          if (short.length>2&&short!==b.name.toLowerCase()) kw.push(short);
+          locations.push({ id:'building:'+b.id, name:b.name.toLowerCase(), keywords:kw, campus:cn });
+        });
+
+        var fromMatch = q.match(/(?:from|starting at|start at|leave|depart)\s+(.+?)(?:\s+to\s+|$)/i)||q.match(/(?:from|at)\s+([\w\s]+?)(?:\s+to\s+|$)/i);
+        var toMatch   = q.match(/(?:to|destination|arrive|going to|head to)\s+(.+?)(?:\s*$|\?)/i)||q.match(/(?:to)\s+([\w\s]+?)(?:\s*$|\?)/i);
+        if (!fromMatch && q.includes(' to ')) {
+          var parts = q.split(' to ');
+          fromMatch = [{1:parts[0]?.trim()||''}];
+          toMatch   = [{1:parts[1]?.trim()||''}];
+        }
+
+        function clean(t){ return t.toLowerCase().replace(/\b(the|a|an|at|in|to|from)\b/g,' ').replace(/\s+/g,' ').trim(); }
+        function findLoc(text){
+          if (!text) return null;
+          var txt = clean(text);
+          for (var loc of locations){ if(loc.name===txt||loc.keywords.some(function(k){return k===txt;})) return loc; }
+          for (var loc of locations){ if(loc.keywords.some(function(k){return txt.includes(k)||k.includes(txt);})) return loc; }
+          var tw = txt.split(' ');
+          for (var loc of locations){ for(var kw of loc.keywords){ for(var t of tw){ if(t.length>=4&&(kw.includes(t)||t.includes(kw))) return loc; } } }
+          return null;
+        }
+
+        var fromLoc = fromMatch ? findLoc(fromMatch[1]) : null;
+        var toLoc   = toMatch   ? findLoc(toMatch[1])   : null;
+        btn.disabled = true; btn.classList.add('busy');
+
+        if (fromLoc && toLoc) {
+          document.getElementById('dirFrom').value = fromLoc.id;
+          document.getElementById('dirTo').value   = toLoc.id;
+          refreshGo();
+          inp.value = '';
+          document.getElementById('dirResults').innerHTML = '<div class="dir-ai-card">✨ <strong>Got it!</strong> Routing from '+fromLoc.campus+' to '+toLoc.campus+'…</div>';
+          setTimeout(compute, 500);
+        } else {
+          var msg = '🤔 I couldn\'t match those locations.';
+          if (!fromLoc&&!toLoc) msg += ' I need both a starting point and destination.';
+          else if (!fromLoc) msg += ' I couldn\'t find your starting location.';
+          else msg += ' I couldn\'t find the destination.';
+          msg += '<br><br>Try: <strong>"How do I get from the Edna Admin Block to the Welding Unit?"</strong>';
+          document.getElementById('dirResults').innerHTML = '<div class="dir-ai-card">'+msg+'</div>';
+        }
+        btn.disabled=false; btn.classList.remove('busy');
+      }
+
+      /* ── Wire up all events ────────────────────────────────────── */
+      function initDir() {
+        populate();
+        _audioWaveEl = document.getElementById('audioWave');
+
+        var fab           = document.getElementById('dirFab');
+        var panel         = document.getElementById('dirPanel');
+        var modal         = document.getElementById('directionModal');
+        var modalFromInput = document.getElementById('modalFrom');
+        var modalToInput   = document.getElementById('modalTo');
+        var locationStatus = document.getElementById('locationStatus');
+        var destDrop       = document.getElementById('modalDestDrop');
+        var getRouteBtn    = document.getElementById('getRouteBtn');
+        var cancelBtn      = document.getElementById('cancelModalBtn');
+        var closeXBtn      = document.getElementById('closeModalBtn');
+        var audioWave      = document.getElementById('audioWave');
+
+        var userCoordinates = null;
+        var selectedDestId  = null;
+        var dropFocusIdx    = -1;
+
+        /* ── Modal open/close ─────────────────────────────────── */
+        function openModal() {
+          panel.classList.remove('open');
+          panel.setAttribute('aria-hidden','true');
+          fab.classList.remove('active');
+          modal.classList.add('active');
+          selectedDestId = null;
+          modalToInput.value = '';
+          destDrop.classList.remove('open');
+          destDrop.innerHTML = '';
+          dropFocusIdx = -1;
+          detectUserLocation();
+          setTimeout(function(){ modalToInput.focus(); }, 800);
+        }
+        function closeModal() {
+          modal.classList.remove('active');
+          if (audioWave) audioWave.classList.add('stopped');
+          destDrop.classList.remove('open');
+        }
+
+        /* ── Reverse geocode ─────────────────────────────────── */
+        function reverseGeocode(lat, lng, callback) {
+          var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lng+'&zoom=17&addressdetails=1';
+          fetch(url, { headers:{'Accept-Language':'en','User-Agent':'DTI-CampusMap/1.0'} })
+            .then(function(r){return r.json();})
+            .then(function(data){
+              var addr = data.address||{};
+              var label = addr.amenity||addr.building||addr.leisure||addr.road||addr.neighbourhood||addr.suburb||addr.town||addr.city||data.display_name||null;
+              if (label&&label===data.display_name) label = label.split(',')[0].trim();
+              callback(label);
+            }).catch(function(){ callback(null); });
+        }
+
+        /* ── GPS detection ───────────────────────────────────── */
+        function detectUserLocation() {
+          var greetingEl = document.getElementById('voiceGreetingText');
+          if (!navigator.geolocation) {
+            locationStatus.innerHTML = '❌ Geolocation not supported';
+            modalFromInput.value = 'Manual input required';
+            modalFromInput.removeAttribute('readonly');
+            if (greetingEl) greetingEl.textContent = "Hi! I'm here to help you navigate campus. Where are you headed?";
+            speakText("Hi! I'm here to help you navigate campus. Where are you headed?");
+            return;
+          }
+          locationStatus.innerHTML = '⏳ Locating you…';
+          modalFromInput.value = '';
+          if (greetingEl) greetingEl.textContent = 'Detecting your location…';
+          navigator.geolocation.getCurrentPosition(
+            function(pos){
+              var lat = pos.coords.latitude, lng = pos.coords.longitude;
+              userCoordinates = [lat, lng];
+              locationStatus.innerHTML = '🔍 Identifying location…';
+              modalFromInput.value = 'Locating… ('+lat.toFixed(5)+', '+lng.toFixed(5)+')';
+              reverseGeocode(lat, lng, function(placeName){
+                var displayName, spokenLocation;
+                if (placeName) { displayName=placeName; spokenLocation=placeName; }
+                else {
+                  var nearest=null, minD=Infinity;
+                  BUILDINGS.forEach(function(b){ var d=Math.hypot(b.coords[0]-lat,b.coords[1]-lng); if(d<minD){minD=d;nearest=b;} });
+                  if (nearest&&minD<0.005) { displayName='Near '+nearest.name; spokenLocation='near '+nearest.name; }
+                  else { displayName=lat.toFixed(5)+', '+lng.toFixed(5); spokenLocation='your current GPS position'; }
+                }
+                modalFromInput.value = displayName;
+                locationStatus.innerHTML = '✅ Location detected';
+                if (greetingEl) greetingEl.textContent = 'You are at '+displayName+'. Don\'t worry — I\'ll navigate you to your destination!';
+                speakText('You are currently at '+spokenLocation+'. Don\'t worry, I will help you navigate to your destination. Just tell me where you want to go!');
+              });
+            },
+            function(){
+              userCoordinates = [5.65285,-0.16324];
+              modalFromInput.value = 'DTI Campus, East Legon, Accra (Estimated)';
+              locationStatus.innerHTML = '⚠️ Using campus default';
+              if (greetingEl) greetingEl.textContent = "Hi! I'm here to help you find your way around DTI campus. Where are you headed?";
+              speakText("Hi! I'm here to help you find your way around DTI campus. Just let me know where you're headed!");
+            },
+            { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+          );
+        }
+
+        /* ── Destination autocomplete ─────────────────────── */
+        function buildSearchList() {
+          var list = [];
+          CAMPUSES.forEach(function(c){ list.push({ id:'campus:'+c.id, name:c.name, icon:c.icon||'🏫', sub:c.region||'Campus', type:'Campus' }); });
+          BUILDINGS.forEach(function(b){
+            var cn=(CAMPUSES.find(function(c){return c.id===b.cid;})||{}).name||b.cid;
+            list.push({ id:'building:'+b.id, name:b.name, icon:b.icon||'🏢', sub:cn, type:b.cat||'Building' });
+          });
+          return list;
+        }
+        function highlight(text, q){
+          if (!q) return text;
+          return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+        }
+        function renderDrop(query){
+          var q=(query||'').trim().toLowerCase();
+          destDrop.innerHTML=''; dropFocusIdx=-1;
+          if (!q){ destDrop.classList.remove('open'); return; }
+          var results = buildSearchList().filter(function(item){
+            return item.name.toLowerCase().includes(q)||item.sub.toLowerCase().includes(q)||item.type.toLowerCase().includes(q);
+          }).slice(0,8);
+          if (!results.length){ destDrop.classList.remove('open'); return; }
+          results.forEach(function(item){
+            var el = document.createElement('div');
+            el.className='modal-dest-item'; el.dataset.id=item.id; el.dataset.name=item.name;
+            el.innerHTML='<span class="modal-dest-item-icon">'+item.icon+'</span>'+
+              '<div class="modal-dest-item-body">'+
+              '<div class="modal-dest-item-name">'+highlight(item.name,query.trim())+'</div>'+
+              '<div class="modal-dest-item-sub">'+item.sub+'</div></div>'+
+              '<span class="modal-dest-badge">'+item.type+'</span>';
+            el.addEventListener('mousedown', function(e){ e.preventDefault(); selectDest(item.name,item.id); });
+            destDrop.appendChild(el);
+          });
+          destDrop.classList.add('open');
+        }
+        function selectDest(name, id){ modalToInput.value=name; selectedDestId=id; destDrop.classList.remove('open'); dropFocusIdx=-1; }
+
+        modalToInput.addEventListener('input', function(){ selectedDestId=null; renderDrop(this.value); });
+        modalToInput.addEventListener('keydown', function(e){
+          var items = destDrop.querySelectorAll('.modal-dest-item');
+          if (e.key==='ArrowDown'){ e.preventDefault(); dropFocusIdx=Math.min(dropFocusIdx+1,items.length-1); items.forEach(function(el,i){el.classList.toggle('focused',i===dropFocusIdx);}); }
+          else if (e.key==='ArrowUp'){ e.preventDefault(); dropFocusIdx=Math.max(dropFocusIdx-1,0); items.forEach(function(el,i){el.classList.toggle('focused',i===dropFocusIdx);}); }
+          else if (e.key==='Enter'){ e.preventDefault(); if(dropFocusIdx>=0&&items[dropFocusIdx]) selectDest(items[dropFocusIdx].dataset.name,items[dropFocusIdx].dataset.id); else triggerRoute(); }
+          else if (e.key==='Escape') destDrop.classList.remove('open');
+        });
+        modalToInput.addEventListener('blur', function(){ setTimeout(function(){ destDrop.classList.remove('open'); },160); });
+
+        /* ── Trigger route from modal ────────────────────── */
+        function triggerRoute() {
+          var destName = modalToInput.value.trim();
+          if (!destName){ modalToInput.style.borderColor='var(--wine)'; setTimeout(function(){modalToInput.style.borderColor='';},1200); modalToInput.focus(); return; }
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+          if (audioWave) audioWave.classList.add('stopped');
+          var toId = selectedDestId;
+          if (!toId){
+            var lower=destName.toLowerCase();
+            var bMatch=BUILDINGS.find(function(b){return b.name.toLowerCase().includes(lower);});
+            var cMatch=!bMatch&&CAMPUSES.find(function(c){return c.name.toLowerCase().includes(lower);});
+            if (bMatch) toId='building:'+bMatch.id;
+            else if (cMatch) toId='campus:'+cMatch.id;
+          }
+          if (!toId){ modalToInput.style.borderColor='var(--wine)'; locationStatus.innerHTML='❓ Destination not found — try a different name'; setTimeout(function(){modalToInput.style.borderColor='';},1800); return; }
+          var coords=userCoordinates||[5.65285,-0.16324];
+          var nearest=null, minD=Infinity;
+          BUILDINGS.forEach(function(b){ var d=haversineM(coords,b.coords); if(d<minD){minD=d;nearest=b;} });
+          var fromId = nearest?'building:'+nearest.id:'campus:main-campus';
+          closeModal();
+          document.getElementById('dirFrom').value = fromId;
+          document.getElementById('dirTo').value   = toId;
+          refreshGo();
+          setTimeout(function(){
+            compute();
+            panel.classList.add('open');
+            panel.setAttribute('aria-hidden','false');
+            fab.classList.add('active');
+          }, 180);
+        }
+
+        /* ── Event wiring ────────────────────────────────── */
+        fab.addEventListener('click', openModal);
+        if (getRouteBtn) getRouteBtn.addEventListener('click', triggerRoute);
+        function doClose(){ closeModal(); }
+        if (cancelBtn) cancelBtn.addEventListener('click', doClose);
+        if (closeXBtn) closeXBtn.addEventListener('click', doClose);
+        if (modal) modal.addEventListener('click', function(e){ if(e.target===modal) doClose(); });
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape'&&modal.classList.contains('active')) doClose(); });
+
+        document.getElementById('dirClose').addEventListener('click', function(){
+          panel.classList.remove('open'); panel.setAttribute('aria-hidden','true'); fab.classList.remove('active');
+        });
+        document.getElementById('dirFrom').addEventListener('change', refreshGo);
+        document.getElementById('dirTo').addEventListener('change', refreshGo);
+        document.getElementById('dirGo').addEventListener('click', compute);
+        document.getElementById('dirSwap').addEventListener('click', function(){
+          var f=document.getElementById('dirFrom'),t=document.getElementById('dirTo');
+          var tmp=f.value; f.value=t.value; t.value=tmp;
+          refreshGo(); if(f.value&&t.value) compute();
+        });
+        document.getElementById('dirAiSend').addEventListener('click', askAI);
+        document.getElementById('dirAiInp').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();askAI();} });
+      }
+    })();
+    let userMarker;
+
+navigator.geolocation.watchPosition((position) => {
+
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+
+  if (!userMarker) {
+
+    userMarker = L.marker([lat, lng])
+      .addTo(map)
+      .bindPopup("You are here");
+
+  } else {
+
+    userMarker.setLatLng([lat, lng]);
+
+  }
+
+});
+  </script>
+</body>
+
+</html>

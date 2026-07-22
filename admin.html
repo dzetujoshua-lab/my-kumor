@@ -1,0 +1,3076 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTI Admin Dashboard — Design & Technology Institute</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+       DTI ADMIN DASHBOARD — Design System
+    ═══════════════════════════════════════════════════════════ */
+        :root {
+            --wine: #722F37;
+            --wine-dk: #521F26;
+            --wine-lt: #9A4450;
+            --wine-tint: rgba(114, 47, 55, .08);
+            --wine-glow: rgba(114, 47, 55, .20);
+
+            --gold: #C5A059;
+            --gold-dk: #A07830;
+            --gold-lt: #DFC07A;
+            --gold-tint: rgba(197, 160, 89, .09);
+            --gold-glow: rgba(197, 160, 89, .22);
+
+            --ink: #111111;
+            --ink2: #2D2D2D;
+            --slate: #555555;
+            --muted: #888888;
+            --dim: #BBBBBB;
+
+            --white: #FFFFFF;
+            --ash: #F2F2F2;
+            --ash2: #E8E8E8;
+            --ash3: #DDDDDD;
+
+            --sidebar-w: 220px;
+
+            --r-xs: 4px;
+            --r-sm: 8px;
+            --r-md: 12px;
+            --r-lg: 16px;
+            --r-xl: 20px;
+            --r-full: 999px;
+
+            --sh-xs: 0 1px 3px rgba(17, 17, 17, .06);
+            --sh-sm: 0 2px 10px rgba(17, 17, 17, .08);
+            --sh-md: 0 4px 20px rgba(17, 17, 17, .10);
+            --sh-lg: 0 8px 40px rgba(17, 17, 17, .12);
+
+            --ease: cubic-bezier(.16, 1, .3, 1);
+            --fast: 140ms;
+            --med: 240ms;
+
+            --display: 'Playfair Display', Georgia, serif;
+            --ui: 'DM Sans', system-ui, sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            font-family: var(--ui);
+            font-size: 13px;
+            color: var(--ink);
+            background: var(--ash);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+            color: inherit;
+            border: none;
+            background: none;
+            cursor: pointer;
+            outline: none
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        /* ═══════════ SHELL ═══════════ */
+        .shell {
+            display: grid;
+            grid-template-columns: var(--sidebar-w) 1fr;
+            grid-template-rows: 100vh;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* ═══════════ SIDEBAR ═══════════ */
+        .sidebar {
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 100;
+        }
+
+        .sb-brand {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, .07);
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            flex-shrink: 0;
+        }
+
+        .sb-logo {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            background: var(--wine);
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--display);
+            font-weight: 800;
+            font-size: 13px;
+            color: #fff;
+            box-shadow: 0 3px 14px var(--wine-glow);
+        }
+
+        .sb-brand-text {
+            flex: 1;
+            min-width: 0
+        }
+
+        .sb-brand-name {
+            font-family: var(--display);
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .sb-brand-sub {
+            font-size: 10px;
+            color: rgba(255, 255, 255, .35);
+            margin-top: 1px;
+        }
+
+        .sb-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px 0;
+            scrollbar-width: none
+        }
+
+        .sb-nav::-webkit-scrollbar {
+            display: none
+        }
+
+        .sb-section {
+            padding: 14px 16px 6px;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .22);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 16px;
+            width: 100%;
+            border-radius: 0;
+            color: rgba(255, 255, 255, .50);
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--fast);
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .05);
+            color: rgba(255, 255, 255, .85)
+        }
+
+        .nav-item.active {
+            background: var(--wine-tint);
+            color: var(--gold-lt);
+            border-left: 3px solid var(--wine);
+            padding-left: 13px;
+        }
+
+        .nav-item.active .ni-icon {
+            color: var(--wine-lt)
+        }
+
+        .ni-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            min-width: 18px;
+            height: 18px;
+            background: var(--wine);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            border-radius: var(--r-full);
+            padding: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sb-bottom {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, .07);
+            flex-shrink: 0;
+        }
+
+        .sb-admin-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: var(--r-md);
+            background: rgba(255, 255, 255, .04);
+            cursor: pointer;
+            transition: background var(--fast);
+        }
+
+        .sb-admin-card:hover {
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .sb-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--wine) 0%, var(--gold) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sb-admin-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .8)
+        }
+
+        .sb-admin-role {
+            font-size: 10px;
+            color: rgba(255, 255, 255, .30);
+            margin-top: 1px
+        }
+
+        .sb-admin-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2ecc71;
+            margin-left: auto;
+            flex-shrink: 0
+        }
+
+        /* ═══════════ MAIN ═══════════ */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--ash);
+        }
+
+        /* ═══════════ TOPBAR ═══════════ */
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--ash3);
+            padding: 0 24px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 50;
+            box-shadow: var(--sh-xs);
+        }
+
+        .tb-title {
+            font-family: var(--display);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ink);
+            flex-shrink: 0
+        }
+
+        .tb-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--ash3);
+            flex-shrink: 0
+        }
+
+        .tb-breadcrumb {
+            font-size: 11.5px;
+            color: var(--muted);
+            flex-shrink: 0
+        }
+
+        .tb-breadcrumb span {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        .tb-search {
+            flex: 1;
+            max-width: 320px;
+            margin-left: 8px;
+            position: relative;
+        }
+
+        .tb-search-icon {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dim);
+            width: 14px;
+            height: 14px;
+            pointer-events: none;
+        }
+
+        .tb-search input {
+            width: 100%;
+            height: 36px;
+            padding: 0 12px 0 34px;
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            border-radius: var(--r-full);
+            font-size: 12.5px;
+            color: var(--ink);
+            transition: border-color var(--fast), box-shadow var(--fast);
+        }
+
+        .tb-search input::placeholder {
+            color: var(--dim)
+        }
+
+        .tb-search input:focus {
+            border-color: var(--wine);
+            background: var(--white);
+            box-shadow: 0 0 0 3px var(--wine-tint);
+        }
+
+        .tb-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .voice-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 12px;
+            border-radius: var(--r-full);
+            border: 1.5px solid var(--gold-glow);
+            background: var(--gold-tint);
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .voice-status:hover {
+            border-color: var(--gold);
+            background: rgba(197, 160, 89, .14)
+        }
+
+        .voice-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 var(--gold-glow)
+            }
+
+            50% {
+                box-shadow: 0 0 0 5px transparent
+            }
+        }
+
+        .voice-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold-dk)
+        }
+
+        .tb-notif-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-md);
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--slate);
+            position: relative;
+            transition: all var(--fast);
+        }
+
+        .tb-notif-btn:hover {
+            background: var(--ash2);
+            color: var(--ink)
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--wine);
+            color: #fff;
+            font-size: 8px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--white);
+        }
+
+        .tb-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 4px 4px;
+            border-radius: var(--r-full);
+            border: 1.5px solid var(--ash3);
+            background: var(--white);
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .tb-profile:hover {
+            border-color: var(--wine-lt);
+            background: var(--ash)
+        }
+
+        .tb-profile-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--wine) 0%, var(--gold) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .tb-profile-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink2)
+        }
+
+        /* ═══════════ CONTENT ═══════════ */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 24px 32px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ash3) transparent;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 5px
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: var(--ash3);
+            border-radius: 4px
+        }
+
+        /* PAGE SECTIONS — toggled by nav */
+        .page {
+            display: none
+        }
+
+        .page.active {
+            display: block
+        }
+
+        /* ═══════════ SECTION HEADER ═══════════ */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: var(--display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .section-sub {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        /* ═══════════ CARDS ═══════════ */
+        .card {
+            background: var(--white);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--ash3);
+            box-shadow: var(--sh-xs);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 14px 18px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -.01em
+        }
+
+        .card-body {
+            padding: 14px 18px
+        }
+
+        /* ═══════════ STAT CARDS ═══════════ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--ash3);
+            box-shadow: var(--sh-xs);
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow var(--med), transform var(--med);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--sh-md);
+            transform: translateY(-1px)
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card.wine::before {
+            background: var(--wine)
+        }
+
+        .stat-card.gold::before {
+            background: var(--gold)
+        }
+
+        .stat-card.ink::before {
+            background: var(--ink2)
+        }
+
+        .stat-card.green::before {
+            background: #2ecc71
+        }
+
+        .stat-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 8px
+        }
+
+        .stat-value {
+            font-family: var(--display);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1
+        }
+
+        .stat-delta {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10.5px;
+            font-weight: 600;
+            margin-top: 6px;
+            padding: 2px 7px;
+            border-radius: var(--r-full);
+        }
+
+        .stat-delta.up {
+            background: rgba(46, 204, 113, .1);
+            color: #1a9e50
+        }
+
+        .stat-delta.down {
+            background: var(--wine-tint);
+            color: var(--wine)
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: 14px;
+            top: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .stat-card.wine .stat-icon {
+            background: var(--wine-tint)
+        }
+
+        .stat-card.gold .stat-icon {
+            background: var(--gold-tint)
+        }
+
+        .stat-card.ink .stat-icon {
+            background: rgba(17, 17, 17, .06)
+        }
+
+        .stat-card.green .stat-icon {
+            background: rgba(46, 204, 113, .08)
+        }
+
+        /* ═══════════ MAIN GRID ═══════════ */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* ═══════════ MAP WIDGET ═══════════ */
+        .map-card {
+            background: var(--white);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--ash3);
+            overflow: hidden;
+            box-shadow: var(--sh-xs)
+        }
+
+        .map-header {
+            padding: 14px 18px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--ash);
+        }
+
+        .map-live-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--wine);
+            padding: 3px 9px;
+            border-radius: var(--r-full);
+            background: var(--wine-tint);
+            border: 1px solid rgba(114, 47, 55, .15);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--wine);
+            animation: pulse-wine 1.8s infinite;
+        }
+
+        @keyframes pulse-wine {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 var(--wine-glow)
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px transparent
+            }
+        }
+
+        #campus-map {
+            height: 320px;
+            width: 100%
+        }
+
+        .leaflet-container {
+            font-family: var(--ui) !important
+        }
+
+        .map-footer {
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px solid var(--ash);
+            background: var(--ash);
+        }
+
+        .campus-user-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            background: var(--white);
+            border: 1px solid var(--ash3);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--slate);
+        }
+
+        .cuc-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%
+        }
+
+        /* ═══════════ ORDERS PANEL ═══════════ */
+        .orders-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .op-header {
+            padding: 14px 18px 12px;
+            border-bottom: 1px solid var(--ash)
+        }
+
+        .op-body {
+            padding: 0;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 370px;
+            scrollbar-width: none
+        }
+
+        .op-body::-webkit-scrollbar {
+            display: none
+        }
+
+        .order-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 18px;
+            border-bottom: 1px solid var(--ash);
+            transition: background var(--fast);
+        }
+
+        .order-row:hover {
+            background: var(--ash)
+        }
+
+        .order-row:last-child {
+            border-bottom: none
+        }
+
+        .order-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r-sm);
+            flex-shrink: 0;
+            background: var(--ash2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 1px solid var(--ash3);
+        }
+
+        .order-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .order-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .order-meta {
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 1px
+        }
+
+        .order-price {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink2);
+            flex-shrink: 0
+        }
+
+        .btn-process {
+            padding: 4px 10px;
+            border-radius: var(--r-sm);
+            background: var(--wine);
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--fast);
+            flex-shrink: 0;
+            border: 1px solid transparent;
+        }
+
+        .btn-process:hover {
+            background: var(--wine-dk);
+            box-shadow: 0 2px 8px var(--wine-glow)
+        }
+
+        .btn-process.processed {
+            background: var(--ash);
+            color: var(--muted);
+            border-color: var(--ash3);
+            cursor: default;
+        }
+
+        /* ═══════════ SECOND ROW ═══════════ */
+        .second-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 340px;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* ═══════════ TABLE STYLES ═══════════ */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .data-table th {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            padding: 8px 12px;
+            background: var(--ash);
+            border-bottom: 1px solid var(--ash3);
+            text-align: left;
+        }
+
+        .data-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--ash);
+            font-size: 12px;
+            color: var(--ink2);
+            vertical-align: middle;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none
+        }
+
+        .data-table tbody tr:hover td {
+            background: rgba(242, 242, 242, .6)
+        }
+
+        .product-img {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-sm);
+            background: var(--ash);
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 1px solid var(--ash3);
+            flex-shrink: 0;
+        }
+
+        .product-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 9px
+        }
+
+        .product-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink)
+        }
+
+        .product-cat {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 1px
+        }
+
+        .stock-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            padding: 2px 7px;
+            border-radius: var(--r-full);
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+
+        .stock-badge.ok {
+            background: rgba(46, 204, 113, .10);
+            color: #1a9e50
+        }
+
+        .stock-badge.low {
+            background: rgba(197, 160, 89, .12);
+            color: var(--gold-dk)
+        }
+
+        .stock-badge.out {
+            background: var(--wine-tint);
+            color: var(--wine)
+        }
+
+        .inline-edit {
+            background: var(--ash);
+            border: 1px solid var(--ash3);
+            border-radius: var(--r-xs);
+            padding: 3px 7px;
+            font-size: 12px;
+            width: 70px;
+            color: var(--ink);
+            transition: border-color var(--fast), box-shadow var(--fast);
+        }
+
+        .inline-edit:focus {
+            border-color: var(--wine);
+            box-shadow: 0 0 0 2px var(--wine-tint)
+        }
+
+        .icon-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: var(--r-xs);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--fast);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .icon-btn.edit {
+            background: var(--gold-tint);
+            color: var(--gold-dk)
+        }
+
+        .icon-btn.edit:hover {
+            background: var(--gold);
+            color: #fff
+        }
+
+        .icon-btn.del {
+            background: var(--wine-tint);
+            color: var(--wine)
+        }
+
+        .icon-btn.del:hover {
+            background: var(--wine);
+            color: #fff
+        }
+
+        .icon-btn.save {
+            background: rgba(46, 204, 113, .1);
+            color: #1a9e50
+        }
+
+        .icon-btn.save:hover {
+            background: #2ecc71;
+            color: #fff
+        }
+
+        /* ═══════════ USER MANAGEMENT ═══════════ */
+        .role-select {
+            background: var(--ash);
+            border: 1px solid var(--ash3);
+            border-radius: var(--r-xs);
+            padding: 3px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink2);
+            cursor: pointer;
+            transition: border-color var(--fast);
+        }
+
+        .role-select:focus {
+            border-color: var(--wine)
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: var(--r-full);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .role-badge.admin {
+            background: var(--wine-tint);
+            color: var(--wine)
+        }
+
+        .role-badge.staff {
+            background: rgba(197, 160, 89, .12);
+            color: var(--gold-dk)
+        }
+
+        .role-badge.student {
+            background: rgba(46, 204, 113, .10);
+            color: #1a9e50
+        }
+
+        .role-badge.visitor {
+            background: var(--ash2);
+            color: var(--muted)
+        }
+
+        .user-avatar-sm {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--wine) 0%, var(--gold) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-remove {
+            padding: 3px 9px;
+            border-radius: var(--r-xs);
+            background: transparent;
+            border: 1px solid var(--ash3);
+            color: var(--muted);
+            font-size: 10.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .btn-remove:hover {
+            border-color: var(--wine);
+            color: var(--wine);
+            background: var(--wine-tint)
+        }
+
+        /* ═══════════ ANNOUNCEMENTS ═══════════ */
+        .ann-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        .ann-input {
+            width: 100%;
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            border-radius: var(--r-md);
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--ink);
+            resize: none;
+            transition: border-color var(--fast), box-shadow var(--fast);
+            font-family: var(--ui);
+        }
+
+        .ann-input:focus {
+            border-color: var(--wine);
+            box-shadow: 0 0 0 3px var(--wine-tint);
+            background: var(--white)
+        }
+
+        .ann-input::placeholder {
+            color: var(--dim)
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--ash3);
+            border-radius: var(--r-md);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--med);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--wine);
+            background: var(--wine-tint);
+        }
+
+        .drop-zone-icon {
+            font-size: 28px;
+            opacity: .5
+        }
+
+        .drop-zone-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .drop-zone-sub {
+            font-size: 10.5px;
+            color: var(--dim)
+        }
+
+        .drop-preview {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: var(--r-sm);
+            object-fit: cover;
+            display: none
+        }
+
+        .ann-options {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .tag-select {
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            border-radius: var(--r-sm);
+            padding: 6px 10px;
+            font-size: 12px;
+            color: var(--ink);
+            cursor: pointer;
+            flex: 1;
+            transition: border-color var(--fast);
+        }
+
+        .tag-select:focus {
+            border-color: var(--wine)
+        }
+
+        .btn-primary {
+            padding: 8px 18px;
+            border-radius: var(--r-sm);
+            background: var(--wine);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover {
+            background: var(--wine-dk);
+            box-shadow: 0 3px 12px var(--wine-glow)
+        }
+
+        .btn-secondary {
+            padding: 8px 14px;
+            border-radius: var(--r-sm);
+            background: transparent;
+            border: 1.5px solid var(--ash3);
+            color: var(--slate);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--wine-lt);
+            color: var(--wine)
+        }
+
+        .ann-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 2px
+        }
+
+        .ann-item {
+            padding: 12px 14px;
+            border-radius: var(--r-md);
+            background: var(--ash);
+            border: 1px solid var(--ash3);
+            transition: box-shadow var(--fast);
+        }
+
+        .ann-item:hover {
+            box-shadow: var(--sh-sm)
+        }
+
+        .ann-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px
+        }
+
+        .ann-tag {
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: var(--r-full);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .ann-tag.urgent {
+            background: var(--wine-tint);
+            color: var(--wine)
+        }
+
+        .ann-tag.info {
+            background: var(--gold-tint);
+            color: var(--gold-dk)
+        }
+
+        .ann-tag.event {
+            background: rgba(46, 204, 113, .1);
+            color: #1a9e50
+        }
+
+        .ann-time {
+            font-size: 10.5px;
+            color: var(--dim);
+            margin-left: auto
+        }
+
+        .ann-views {
+            font-size: 10.5px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 3px
+        }
+
+        .ann-text {
+            font-size: 12px;
+            color: var(--ink2);
+            line-height: 1.5
+        }
+
+        /* ═══════════ EMERGENCY ═══════════ */
+        .emergency-card {
+            background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dk) 100%);
+            border-radius: var(--r-lg);
+            padding: 20px;
+            border: 1px solid var(--wine-dk);
+            box-shadow: 0 4px 24px var(--wine-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emergency-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .emergency-card::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .emrg-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px
+        }
+
+        .emrg-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r-md);
+            background: rgba(255, 255, 255, .15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .emrg-title {
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .emrg-sub {
+            font-size: 10.5px;
+            color: rgba(255, 255, 255, .55);
+            margin-top: 2px
+        }
+
+        .emrg-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .emrg-btn {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: var(--r-md);
+            background: rgba(255, 255, 255, .12);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            transition: all var(--fast);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid rgba(255, 255, 255, .15);
+        }
+
+        .emrg-btn:hover {
+            background: rgba(255, 255, 255, .20);
+            border-color: rgba(255, 255, 255, .25)
+        }
+
+        .emrg-btn.primary-alert {
+            background: rgba(255, 255, 255, .18);
+            border-color: rgba(255, 255, 255, .30);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .2);
+        }
+
+        .emrg-btn.primary-alert:hover {
+            background: rgba(255, 255, 255, .28)
+        }
+
+        .emrg-btn-icon {
+            font-size: 15px;
+            flex-shrink: 0
+        }
+
+        .emrg-btn-text {
+            flex: 1
+        }
+
+        .emrg-btn-desc {
+            font-size: 9.5px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, .55);
+            display: block;
+            margin-top: 1px
+        }
+
+        .emrg-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: var(--r-sm);
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .10);
+            font-size: 10.5px;
+            color: rgba(255, 255, 255, .60);
+            text-align: center;
+        }
+
+        .emrg-ok {
+            color: rgba(46, 204, 113, .9);
+            font-weight: 700
+        }
+
+        /* ═══════════ ACTIVITY LOG ═══════════ */
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .log-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 9px 18px;
+            border-bottom: 1px solid var(--ash);
+            transition: background var(--fast);
+        }
+
+        .log-item:hover {
+            background: var(--ash)
+        }
+
+        .log-item:last-child {
+            border-bottom: none
+        }
+
+        .log-dot-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            padding-top: 3px;
+            flex-shrink: 0
+        }
+
+        .log-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        .log-dot.wine {
+            background: var(--wine)
+        }
+
+        .log-dot.gold {
+            background: var(--gold)
+        }
+
+        .log-dot.green {
+            background: #2ecc71
+        }
+
+        .log-dot.slate {
+            background: var(--slate)
+        }
+
+        .log-text {
+            font-size: 11.5px;
+            color: var(--ink2);
+            flex: 1;
+            line-height: 1.45
+        }
+
+        .log-text strong {
+            font-weight: 700;
+            color: var(--ink)
+        }
+
+        .log-time {
+            font-size: 10px;
+            color: var(--dim);
+            flex-shrink: 0;
+            margin-top: 2px
+        }
+
+        /* ═══════════ CHARTS ═══════════ */
+        .mini-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 36px
+        }
+
+        .mc-bar {
+            flex: 1;
+            border-radius: 2px 2px 0 0;
+            opacity: .7;
+            transition: opacity var(--fast);
+        }
+
+        .mc-bar:hover {
+            opacity: 1
+        }
+
+        .sparkline {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 28px
+        }
+
+        .sp-bar {
+            width: 4px;
+            border-radius: 2px 2px 0 0;
+            background: var(--gold);
+            opacity: .6
+        }
+
+        /* ═══════════ SCROLLABLE TABLE WRAP ═══════════ */
+        .table-wrap {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 280px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ash3) transparent
+        }
+
+        .table-wrap::-webkit-scrollbar {
+            width: 4px;
+            height: 4px
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: var(--ash3);
+            border-radius: 3px
+        }
+
+        /* ═══════════ TABS ═══════════ */
+        .tab-row {
+            display: flex;
+            gap: 4px;
+            padding: 14px 18px 0
+        }
+
+        .tab {
+            padding: 6px 13px;
+            border-radius: var(--r-full);
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .tab:hover {
+            color: var(--ink)
+        }
+
+        .tab.active {
+            background: var(--wine);
+            color: #fff;
+            box-shadow: 0 2px 8px var(--wine-glow)
+        }
+
+        /* ═══════════ PROGRESS BAR ═══════════ */
+        .progress-wrap {
+            height: 5px;
+            background: var(--ash2);
+            border-radius: var(--r-full);
+            overflow: hidden
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: var(--r-full);
+            transition: width .6s var(--ease)
+        }
+
+        /* ═══════════ MODAL ═══════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.open {
+            display: flex
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--r-xl);
+            box-shadow: var(--sh-lg);
+            padding: 24px;
+            width: 100%;
+            max-width: 440px;
+            animation: modal-in .25s var(--ease);
+        }
+
+        @keyframes modal-in {
+            from {
+                opacity: 0;
+                transform: scale(.95) translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .modal-title {
+            font-family: var(--display);
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--ink)
+        }
+
+        .modal-close {
+            float: right;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--ash);
+            color: var(--muted);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--fast);
+            margin-top: -4px;
+        }
+
+        .modal-close:hover {
+            background: var(--wine);
+            color: #fff
+        }
+
+        /* ═══════════ TOAST ═══════════ */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--ink);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: var(--r-md);
+            font-size: 12.5px;
+            font-weight: 600;
+            box-shadow: var(--sh-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toast-in .3s var(--ease);
+            max-width: 320px;
+        }
+
+        .toast.success {
+            background: #1e6e3e
+        }
+
+        .toast.error {
+            background: var(--wine)
+        }
+
+        .toast.gold {
+            background: var(--gold-dk)
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @keyframes toast-out {
+            to {
+                opacity: 0;
+                transform: translateX(20px)
+            }
+        }
+
+        .toast.out {
+            animation: toast-out .25s var(--ease) forwards
+        }
+
+        /* ═══════════ GLASSMORPHISM OVERLAY CARDS ═══════════ */
+        .glass-overlay {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, .82);
+            border: 1px solid rgba(255, 255, 255, .6);
+        }
+
+        /* ═══════════ CHIP ═══════════ */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px
+        }
+
+        .chip {
+            padding: 4px 11px;
+            border-radius: var(--r-full);
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all var(--fast);
+        }
+
+        .chip:hover {
+            border-color: var(--wine-lt);
+            color: var(--ink)
+        }
+
+        .chip.active {
+            background: var(--wine);
+            color: #fff;
+            border-color: transparent
+        }
+
+        /* ═══════════ RESPONSIVE HELPERS ═══════════ */
+        .flex-row {
+            display: flex;
+            align-items: center
+        }
+
+        .gap-6 {
+            gap: 6px
+        }
+
+        .gap-8 {
+            gap: 8px
+        }
+
+        .gap-12 {
+            gap: 12px
+        }
+
+        .ml-auto {
+            margin-left: auto
+        }
+
+        .font-bold {
+            font-weight: 700
+        }
+
+        .text-muted {
+            color: var(--muted)
+        }
+
+        .text-sm {
+            font-size: 11.5px
+        }
+
+        /* ═══════════ EMPTY STATE ═══════════ */
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--muted)
+        }
+
+        .empty-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: .4
+        }
+
+        .empty-text {
+            font-size: 12.5px;
+            font-weight: 600
+        }
+
+        /* ═══════════ SECTION DIVIDER ═══════════ */
+        .third-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1
+        }
+
+        /* ═══════════ SCROLLABLE NAV INDICATOR ═══════════ */
+        .page-heading {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-bottom: 20px
+        }
+
+        /* ═══════════ SETTINGS MODAL ═══════════ */
+        .settings-modal {
+            width: 520px;
+            max-width: 96vw;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--r-xl);
+            padding: 0;
+        }
+
+        .settings-modal-head {
+            padding: 22px 24px 0;
+            flex-shrink: 0;
+        }
+
+        .settings-modal-title {
+            font-family: var(--display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 2px;
+        }
+
+        .settings-modal-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .settings-admin-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--ash);
+            border-radius: var(--r-md);
+            border: 1px solid var(--ash3);
+            margin-bottom: 18px;
+        }
+
+        .settings-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--wine) 0%, var(--gold) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .settings-admin-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .settings-admin-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .settings-admin-email {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .settings-online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            flex-shrink: 0;
+        }
+
+        /* Tab navigation */
+        .settings-tabs {
+            display: flex;
+            gap: 2px;
+            border-bottom: 1px solid var(--ash3);
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .settings-tab-btn {
+            padding: 9px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            border-radius: var(--r-sm) var(--r-sm) 0 0;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color var(--fast), border-color var(--fast);
+        }
+
+        .settings-tab-btn:hover {
+            color: var(--ink);
+        }
+
+        .settings-tab-btn.active {
+            color: var(--wine);
+            border-bottom-color: var(--wine);
+        }
+
+        /* Tab content */
+        .settings-tab-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ash3) transparent;
+        }
+
+        .settings-tab-pane {
+            display: none;
+        }
+
+        .settings-tab-pane.active {
+            display: block;
+        }
+
+        .settings-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .settings-group {
+            margin-bottom: 22px;
+        }
+
+        .settings-input {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            background: var(--ash);
+            border: 1.5px solid var(--ash3);
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            color: var(--ink);
+            transition: border-color var(--fast), box-shadow var(--fast);
+            font-family: var(--ui);
+        }
+
+        .settings-input:focus {
+            border-color: var(--wine);
+            background: var(--white);
+            box-shadow: 0 0 0 3px var(--wine-tint);
+            outline: none;
+        }
+
+        .settings-input::placeholder {
+            color: var(--dim);
+        }
+
+        .settings-input-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .settings-error {
+            font-size: 11.5px;
+            color: var(--wine);
+            margin-top: 8px;
+            min-height: 16px;
+            font-weight: 500;
+        }
+
+        /* Sign-out zone */
+        .settings-danger-zone {
+            border: 1.5px solid rgba(114, 47, 55, .2);
+            border-radius: var(--r-md);
+            padding: 16px;
+            background: var(--wine-tint);
+        }
+
+        .settings-danger-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--wine);
+            margin-bottom: 4px;
+        }
+
+        .settings-danger-sub {
+            font-size: 11.5px;
+            color: var(--slate);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 38px;
+            padding: 0 16px;
+            background: var(--wine);
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+            border-radius: var(--r-sm);
+            transition: background var(--fast), transform var(--fast);
+        }
+
+        .btn-danger:hover {
+            background: var(--wine-dk);
+            transform: translateY(-1px);
+        }
+
+        /* Signin form */
+        .settings-signin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Toggle row */
+        .settings-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: var(--ash);
+            border-radius: var(--r-md);
+            border: 1px solid var(--ash3);
+            margin-bottom: 8px;
+        }
+
+        .settings-toggle-label {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--ink2);
+        }
+
+        .settings-toggle-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .toggle-switch {
+            width: 36px;
+            height: 20px;
+            background: var(--dim);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background var(--fast);
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.on {
+            background: var(--wine);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform var(--fast);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+        }
+
+        .toggle-switch.on::after {
+            transform: translateX(16px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="shell">
+
+        <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
+        <aside class="sidebar">
+             <div class="sb-brand">
+                 <div class="sb-logo">K</div>
+                 <div class="sb-brand-text">
+                     <div class="sb-brand-name">Kumora Admin</div>
+                     <div class="sb-brand-sub">Kumora Campus Management</div>
+                 </div>
+             </div>
+
+            <nav class="sb-nav">
+                <div class="sb-section">Main</div>
+                <button class="nav-item active" onclick="navigate('dashboard', this)">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <rect x="1" y="1" width="6" height="6" rx="1.5" />
+                            <rect x="9" y="1" width="6" height="6" rx="1.5" />
+                            <rect x="1" y="9" width="6" height="6" rx="1.5" />
+                            <rect x="9" y="9" width="6" height="6" rx="1.5" />
+                        </svg>
+                    </span>
+                    Dashboard Home
+                </button>
+                <button class="nav-item" onclick="navigate('users', this)">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <circle cx="8" cy="5" r="3" />
+                            <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                        </svg>
+                    </span>
+                    User Management
+                    <span class="nav-badge">142</span>
+                </button>
+                <button class="nav-item" onclick="navigate('inventory', this)">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <rect x="2" y="4" width="12" height="10" rx="1.5" />
+                            <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+                            <path d="M6 9h4M8 7v4" />
+                        </svg>
+                    </span>
+                    Marketplace Inventory
+                </button>
+                <button class="nav-item" onclick="navigate('announcements', this)">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <path d="M14 2L2 6l4 2 2 4 6-10z" />
+                        </svg>
+                    </span>
+                    Announcements
+                    <span class="nav-badge">3</span>
+                </button>
+                <button class="nav-item" onclick="navigate('logs', this)">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <rect x="2" y="2" width="12" height="12" rx="1.5" />
+                            <path d="M5 6h6M5 9h4M5 12h3" />
+                        </svg>
+                    </span>
+                    Activity Logs
+                </button>
+
+                <div class="sb-section" style="margin-top:8px">System</div>
+                <button class="nav-item" onclick="navigate('emergency', this)">
+                    <span class="ni-icon">⚠️</span>
+                    Emergency Alerts
+                </button>
+                <button class="nav-item" onclick="openSettings()">
+                    <span class="ni-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <circle cx="8" cy="8" r="3" />
+                            <path
+                                d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" />
+                        </svg>
+                    </span>
+                    Settings
+                </button>
+            </nav>
+
+            <div class="sb-bottom">
+                <div class="sb-admin-card">
+                    <div class="sb-avatar">AK</div>
+                    <div>
+                     <div class="sb-admin-name">Kumora Admin</div>
+                     <div class="sb-admin-role">Platform Administrator</div>
+                    </div>
+                    <div class="sb-admin-dot"></div>
+                </div>
+                <button class="btn-danger" onclick="handleSignOut()" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:var(--r-sm);">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 12l4-4-4-4M14 8H6M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+        <div class="main">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div class="tb-title">Kumora Campus</div>
+                <div class="tb-divider"></div>
+                <div class="tb-breadcrumb" id="breadcrumb"><span>Dashboard</span></div>
+
+                <div class="tb-search">
+                    <svg class="tb-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round">
+                        <circle cx="7" cy="7" r="4" />
+                        <path d="M11 11l3 3" />
+                    </svg>
+                    <input type="text" placeholder="Search users, products, announcements…" id="globalSearch">
+                </div>
+
+                <div class="tb-actions">
+                    <div class="voice-status" onclick="toggleVoice()" title="Voice Agent Status">
+                        <div class="voice-dot" id="voiceDot"></div>
+                        <span class="voice-label" id="voiceLabel">Voice Agent: ON</span>
+                    </div>
+
+                    <button class="tb-notif-btn" onclick="showToast('3 new notifications', 'gold')">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round">
+                            <path d="M8 1a5 5 0 0 1 5 5v2l1 2H2l1-2V6a5 5 0 0 1 5-5z" />
+                            <path d="M6.5 13a1.5 1.5 0 0 0 3 0" />
+                        </svg>
+                        <span class="notif-badge">3</span>
+                    </button>
+
+                    <div class="tb-profile">
+                        <div class="tb-profile-avatar">AK</div>
+                        <span class="tb-profile-name">Kumora Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <div class="content">
+
+                <!-- ═══════ PAGE: DASHBOARD ═══════ -->
+                <div class="page active" id="page-dashboard">
+                    <div class="page-heading">Dashboard Overview</div>
+                    <div class="page-sub">Good morning, Admin Kwame — here's what's happening on campus today.</div>
+
+                    <!-- STAT CARDS -->
+                    <div class="stats-grid">
+                        <div class="stat-card wine">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-label">Total Registered Users</div>
+                            <div class="stat-value" id="stat-users">142</div>
+                            <div class="stat-delta up">↑ 12 this week</div>
+                        </div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">📢</div>
+                            <div class="stat-label">Announcement Views</div>
+                            <div class="stat-value" id="stat-views">1,847</div>
+                            <div class="stat-delta up">↑ 234 today</div>
+                        </div>
+                        <div class="stat-card ink">
+                            <div class="stat-icon">🛒</div>
+                            <div class="stat-label">Live Marketplace Products</div>
+                            <div class="stat-value" id="stat-products">38</div>
+                            <div class="stat-delta up">↑ 4 new</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-label">Pending Orders</div>
+                            <div class="stat-value" id="stat-orders">9</div>
+                            <div class="stat-delta down">↓ 3 processed</div>
+                        </div>
+                    </div>
+
+                    <!-- MAP + ORDERS -->
+                    <div class="main-grid">
+                        <!-- Campus Map -->
+                        <div class="map-card">
+                            <div class="map-header">
+                                <div>
+                                    <div class="card-title">Live Campus Visualization</div>
+                                    <div style="font-size:11px;color:var(--muted);margin-top:2px">Real-time user
+                                        tracking across all DTI campus locations</div>
+                                </div>
+                                <div class="map-live-badge">
+                                    <div class="live-dot"></div> LIVE
+                                </div>
+                            </div>
+                            <div id="campus-map"></div>
+                            <div class="map-footer" id="mapFooter">
+                                <!-- populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Orders Queue -->
+                        <div class="card orders-panel">
+                            <div class="op-header">
+                                <div class="card-title">Incoming Orders Queue</div>
+                                <div style="font-size:11px;color:var(--muted);margin-top:3px">Pending marketplace
+                                    transactions</div>
+                                <div class="tab-row" style="padding:8px 0 0">
+                                    <button class="tab active" onclick="filterOrders('all',this)">All <span
+                                            style="margin-left:3px;opacity:.6">(9)</span></button>
+                                    <button class="tab" onclick="filterOrders('pending',this)">Pending</button>
+                                    <button class="tab" onclick="filterOrders('processed',this)">Processed</button>
+                                </div>
+                            </div>
+                            <div class="op-body" id="orders-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- ANALYTICS + LOG -->
+                    <div class="second-grid">
+                        <!-- Announcement Analytics -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Announcement Analytics</div>
+                                    <div style="font-size:11px;color:var(--muted);margin-top:2px">Views per announcement
+                                        (last 7 days)</div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="ann-analytics"></div>
+                                <div style="margin-top:14px">
+                                    <div
+                                        style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">
+                                        Daily View Trend</div>
+                                    <div class="mini-chart" id="viewChart"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Marketplace Summary -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">Marketplace Summary</div>
+                                    <div style="font-size:11px;color:var(--muted);margin-top:2px">Product distribution
+                                        by category</div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="market-summary"></div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Controls -->
+                        <div class="emergency-card">
+                            <div class="emrg-header">
+                                <div class="emrg-icon">🚨</div>
+                                <div>
+                                    <div class="emrg-title">Emergency Controls</div>
+                                    <div class="emrg-sub">Campus-wide alert system</div>
+                                </div>
+                            </div>
+                            <div class="emrg-btn-group">
+                                <button class="emrg-btn primary-alert" onclick="triggerAlert('FULL CAMPUS EVACUATION')">
+                                    <span class="emrg-btn-icon">🔴</span>
+                                    <span class="emrg-btn-text">
+                                        Full Campus Evacuation
+                                        <span class="emrg-btn-desc">Alert all users immediately</span>
+                                    </span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('LOCKDOWN')">
+                                    <span class="emrg-btn-icon">🔒</span>
+                                    <span class="emrg-btn-text">
+                                        Lockdown Alert
+                                        <span class="emrg-btn-desc">Secure all campus buildings</span>
+                                    </span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('MEDICAL EMERGENCY')">
+                                    <span class="emrg-btn-icon">🏥</span>
+                                    <span class="emrg-btn-text">
+                                        Medical Emergency
+                                        <span class="emrg-btn-desc">Alert campus medical team</span>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="emrg-status">
+                                Status: <span class="emrg-ok">● All Clear</span> — No active alerts
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Log -->
+                    <div class="card">
+                        <div class="card-header" style="padding-bottom:12px">
+                            <div>
+                                <div class="card-title">Recent Activity Log</div>
+                                <div style="font-size:11px;color:var(--muted);margin-top:2px">Live dashboard engagement
+                                    statistics</div>
+                            </div>
+                            <button class="btn-secondary" style="font-size:11.5px;padding:5px 12px"
+                                onclick="showToast('Log exported successfully', 'success')">Export CSV</button>
+                        </div>
+                        <div class="log-list" id="activity-log"></div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════ PAGE: USERS ═══════════════════════ -->
+                <div class="page" id="page-users">
+                    <div class="page-heading">User Management</div>
+                    <div class="page-sub">Manage registered accounts — verify staff, update roles, or remove users from the platform.
+                    </div>
+
+                    <div class="card" style="margin-bottom:16px">
+                        <div class="card-header" style="padding-bottom:10px">
+                            <div class="flex-row gap-8">
+                                <div class="tb-search" style="max-width:260px;margin:0">
+                                    <svg class="tb-search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                        stroke-width="1.8" stroke-linecap="round">
+                                        <circle cx="7" cy="7" r="4" />
+                                        <path d="M11 11l3 3" />
+                                    </svg>
+                                    <input type="text" placeholder="Search users…" id="userSearch"
+                                        oninput="filterUsers()">
+                                </div>
+                                <div class="chip-group" style="margin:0">
+                                    <button class="chip active" onclick="filterUserRole('all',this)">All</button>
+                                    <button class="chip" onclick="filterUserRole('admin',this)">Admin</button>
+                                    <button class="chip" onclick="filterUserRole('staff',this)">Staff</button>
+                                    <button class="chip" onclick="filterUserRole('student',this)">Student</button>
+                                    <button class="chip" onclick="filterUserRole('visitor',this)">Visitor</button>
+                                </div>
+                            </div>
+                                <button class="btn-primary" onclick="openAddUserModal()">
+                                    <span>+</span> Add User
+                                </button>
+                            </div>
+                            <div id="pending-verification-section" class="card" style="margin-bottom:16px;border-left:3px solid var(--gold)">
+                                <div class="card-body" style="padding:14px 18px">
+                                    <div class="card-title" style="margin-bottom:10px">Pending Staff Verification <span id="pending-count" style="color:var(--muted)">(0)</span></div>
+                                    <div id="pending-verification-list" style="font-size:12px;color:var(--muted)">No pending staff.</div>
+                                </div>
+                            </div>
+                            <div class="table-wrap" style="max-height:460px">
+                                <table class="data-table" id="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>ID</th>
+                                            <th>Campus</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Verified</th>
+                                            <th>Joined</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- ═══════════════════════ PAGE: INVENTORY ═══════════════════ -->
+                <div class="page" id="page-inventory">
+                    <div class="page-heading">Marketplace Inventory</div>
+                    <div class="page-sub">Manage live products — update stock, pricing, and availability in real time.
+                    </div>
+
+                    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+                        <div class="stat-card gold">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-label">Total Products</div>
+                            <div class="stat-value">38</div>
+                            <div class="stat-delta up">↑ 4 added this week</div>
+                        </div>
+                        <div class="stat-card wine">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-label">Low Stock Items</div>
+                            <div class="stat-value">7</div>
+                            <div class="stat-delta down">Needs restock</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-label">Marketplace Revenue</div>
+                            <div class="stat-value">₵4,820</div>
+                            <div class="stat-delta up">↑ ₵340 today</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header" style="padding-bottom:10px">
+                            <div class="flex-row gap-8">
+                                <div class="chip-group" style="margin:0">
+                                    <button class="chip active" onclick="filterInventory('all',this)">All</button>
+                                    <button class="chip" onclick="filterInventory('food',this)">Food & Drinks</button>
+                                    <button class="chip"
+                                        onclick="filterInventory('stationery',this)">Stationery</button>
+                                    <button class="chip"
+                                        onclick="filterInventory('electronics',this)">Electronics</button>
+                                    <button class="chip" onclick="filterInventory('clothing',this)">Clothing</button>
+                                </div>
+                            </div>
+                            <button class="btn-primary"
+                                onclick="document.getElementById('addInventoryModal').classList.add('open')">
+                                <span>+</span> Add Product
+                            </button>
+                        </div>
+                        <div class="table-wrap" style="max-height:420px">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Stock</th>
+                                        <th>Price (₵)</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════ PAGE: ANNOUNCEMENTS ═══════════════ -->
+                <div class="page" id="page-announcements">
+                    <div class="page-heading">Campus Announcements</div>
+                    <div class="page-sub">Draft and publish live announcements to all campus users.</div>
+
+                    <div class="third-grid">
+                        <!-- Compose -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Create Announcement</div>
+                            </div>
+                            <div class="card-body">
+                                <div class="ann-form">
+                                    <input class="ann-input" type="text" placeholder="Announcement title…"
+                                        id="ann-title" style="height:42px">
+                                    <textarea class="ann-input" rows="4" placeholder="Write your announcement here…"
+                                        id="ann-body"></textarea>
+                                    <div class="drop-zone" id="drop-zone"
+                                        onclick="document.getElementById('imgUpload').click()"
+                                        ondragover="event.preventDefault();this.classList.add('drag-over')"
+                                        ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
+                                        <input type="file" id="imgUpload" accept="image/*" style="display:none"
+                                            onchange="handleImageSelect(event)">
+                                        <div class="drop-zone-icon">🖼️</div>
+                                        <div class="drop-zone-label">Drag & drop image, or click to browse</div>
+                                        <div class="drop-zone-sub">PNG, JPG, WEBP up to 5MB</div>
+                                        <img class="drop-preview" id="drop-preview" alt="Preview">
+                                    </div>
+                                    <div class="ann-options">
+                                        <select class="tag-select" id="ann-tag">
+                                            <option value="info">📢 Information</option>
+                                            <option value="urgent">🔴 Urgent</option>
+                                            <option value="event">🎉 Event</option>
+                                        </select>
+                                        <select class="tag-select">
+                                            <option>All Campuses</option>
+                                            <option>Main Campus</option>
+                                            <option>Sabala Campus</option>
+                                            <option>NSAA Campus</option>
+                                            <option>Fihankra Hostel</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex-row gap-8">
+                                        <button class="btn-primary" onclick="publishAnnouncement()">📤 Publish
+                                            Now</button>
+                                        <button class="btn-secondary" onclick="showToast('Saved as draft', 'gold')">Save
+                                            Draft</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Published -->
+                        <div class="card">
+                            <div class="card-header" style="padding-bottom:10px">
+                                <div class="card-title">Published Announcements</div>
+                                <div style="font-size:11px;color:var(--muted);margin-top:2px">Sorted by most recent
+                                </div>
+                            </div>
+                            <div class="card-body" style="padding-top:10px">
+                                <div class="ann-list" id="ann-published"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════ PAGE: LOGS ═══════════════════════ -->
+                <div class="page" id="page-logs">
+                    <div class="page-heading">Activity Logs</div>
+                    <div class="page-sub">Full dashboard engagement history and admin action records.</div>
+
+                    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+                        <div class="stat-card ink">
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-label">Total Events Today</div>
+                            <div class="stat-value">284</div>
+                            <div class="stat-delta up">↑ 47 last hour</div>
+                        </div>
+                        <div class="stat-card wine">
+                            <div class="stat-icon">🔐</div>
+                            <div class="stat-label">Admin Actions</div>
+                            <div class="stat-value">23</div>
+                            <div class="stat-delta up">↑ 5 today</div>
+                        </div>
+                        <div class="stat-card gold">
+                            <div class="stat-icon">👤</div>
+                            <div class="stat-label">User Logins Today</div>
+                            <div class="stat-value">78</div>
+                            <div class="stat-delta up">↑ 12 new</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-label">Orders Processed</div>
+                            <div class="stat-value">31</div>
+                            <div class="stat-delta up">↑ 8 today</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header" style="padding-bottom:10px">
+                            <div class="flex-row gap-8">
+                                <div class="chip-group" style="margin:0">
+                                    <button class="chip active" onclick="filterLogs('all',this)">All Events</button>
+                                    <button class="chip" onclick="filterLogs('admin',this)">Admin</button>
+                                    <button class="chip" onclick="filterLogs('order',this)">Orders</button>
+                                    <button class="chip" onclick="filterLogs('user',this)">Users</button>
+                                    <button class="chip" onclick="filterLogs('alert',this)">Alerts</button>
+                                </div>
+                            </div>
+                            <button class="btn-secondary" onclick="showToast('Full log exported', 'success')">Export
+                                Logs</button>
+                        </div>
+                        <div class="log-list" id="full-log"></div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════ PAGE: EMERGENCY ═══════════════════ -->
+                <div class="page" id="page-emergency">
+                    <div class="page-heading">Emergency Alert Controls</div>
+                    <div class="page-sub">Trigger and manage campus-wide emergency alert protocols.</div>
+
+                    <div class="third-grid">
+                        <div class="emergency-card" style="height:auto">
+                            <div class="emrg-header">
+                                <div class="emrg-icon">🚨</div>
+                                <div>
+                                    <div class="emrg-title">Alert Command Center</div>
+                                    <div class="emrg-sub">Select alert type and broadcast to all campuses</div>
+                                </div>
+                            </div>
+                            <div class="emrg-btn-group">
+                                <button class="emrg-btn primary-alert" onclick="triggerAlert('FULL CAMPUS EVACUATION')">
+                                    <span class="emrg-btn-icon">🔴</span>
+                                    <span class="emrg-btn-text">Full Campus Evacuation<span
+                                            class="emrg-btn-desc">Broadcast to all 7 campuses — immediate action
+                                            required</span></span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('LOCKDOWN PROTOCOL')">
+                                    <span class="emrg-btn-icon">🔒</span>
+                                    <span class="emrg-btn-text">Lockdown Protocol<span class="emrg-btn-desc">Secure all
+                                            buildings — restrict movement</span></span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('MEDICAL EMERGENCY')">
+                                    <span class="emrg-btn-icon">🏥</span>
+                                    <span class="emrg-btn-text">Medical Emergency<span class="emrg-btn-desc">Alert
+                                            campus medical & emergency contacts</span></span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('FIRE ALARM')">
+                                    <span class="emrg-btn-icon">🔥</span>
+                                    <span class="emrg-btn-text">Fire Alarm<span class="emrg-btn-desc">Initiate fire
+                                            response protocol immediately</span></span>
+                                </button>
+                                <button class="emrg-btn" onclick="triggerAlert('WEATHER WARNING')">
+                                    <span class="emrg-btn-icon">⛈️</span>
+                                    <span class="emrg-btn-text">Severe Weather Warning<span
+                                            class="emrg-btn-desc">Shelter in place — extreme weather
+                                            detected</span></span>
+                                </button>
+                            </div>
+                            <div class="emrg-status" id="emrg-status-full">
+                                Current Status: <span class="emrg-ok">● All Clear</span> — No active emergencies
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Alert History</div>
+                            </div>
+                            <div class="log-list" id="alert-log"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main -->
+    </div><!-- /shell -->
+
+    <!-- ADD INVENTORY MODAL -->
+    <div class="modal-overlay" id="addInventoryModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('addInventoryModal')">✕</button>
+            <div class="modal-title">Add Inventory Item</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <input class="ann-input" type="text" placeholder="Item name (e.g. Graph Paper Pad)" id="new-item-name"
+                    style="height:40px">
+                <select class="ann-input" id="new-item-cat" style="height:40px">
+                    <option value="stationery">📓 Stationery</option>
+                    <option value="food">🍲 Food &amp; Drinks</option>
+                    <option value="electronics">💻 Electronics</option>
+                    <option value="clothing">👕 Clothing</option>
+                </select>
+                <input class="ann-input" type="number" placeholder="Initial quantity" id="new-item-qty" min="0"
+                    style="height:40px">
+                <div class="input-group">
+                    <label for="inv-image-url" style="display:block;font-size:11.5px;font-weight:600;color:var(--slate);margin-bottom:5px">Product Image URL</label>
+                    <input type="url" id="inv-image-url" placeholder="https://example.com/image.jpg" class="ann-input form-input" style="height:40px">
+                </div>
+                <div class="flex-row gap-8" style="margin-top:4px">
+                    <button class="btn-primary"
+                        onclick="addInventoryItem().then(()=>closeModal('addInventoryModal'))">Add Item</button>
+                    <button class="btn-secondary" onclick="closeModal('addInventoryModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD USER MODAL -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+            <div class="modal-title">Add New User</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <input class="ann-input" type="text" placeholder="Full name" id="new-user-name" style="height:40px">
+                <input class="ann-input" type="email" placeholder="Email address" id="new-user-email"
+                    style="height:40px">
+                <select class="ann-input" id="new-user-role" style="height:40px">
+                    <option value="visitor">Visitor</option>
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <select class="ann-input" id="new-user-campus" style="height:40px">
+                    <option>Main Campus</option>
+                    <option>Sabala Campus</option>
+                    <option>NSAA Campus</option>
+                    <option>Fihankra Hostel</option>
+                    <option>Awale-T3 / PMU</option>
+                </select>
+                <div class="flex-row gap-8" style="margin-top:4px">
+                    <button class="btn-primary" onclick="addUser()">Add User</button>
+                    <button class="btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM ALERT MODAL -->
+    <div class="modal-overlay" id="alertConfirmModal">
+        <div class="modal">
+            <div class="modal-title" style="color:var(--wine)">⚠️ Confirm Emergency Alert</div>
+            <p style="font-size:13px;color:var(--slate);margin-bottom:16px;line-height:1.6">
+                You are about to broadcast: <strong id="alertType" style="color:var(--wine)"></strong>
+                to all campus users. This action cannot be undone immediately.
+            </p>
+            <div class="flex-row gap-8">
+                <button class="btn-primary" onclick="confirmAlert()">🚨 Confirm & Broadcast</button>
+                <button class="btn-secondary" onclick="closeModal('alertConfirmModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRM MODAL -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal" style="max-width:380px">
+            <div class="modal-title" id="confirmModal-title" style="font-size:15px">Confirm Action</div>
+            <p id="confirmModal-msg" style="font-size:13px;color:var(--slate);margin-bottom:20px;line-height:1.6"></p>
+            <div class="flex-row gap-8">
+                <button class="btn-primary" id="confirmModal-ok">Confirm</button>
+                <button class="btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal settings-modal">
+            <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+
+            <!-- Head: current admin badge -->
+            <div class="settings-modal-head">
+                <div class="settings-modal-title">⚙️ Dashboard Settings</div>
+                <div class="settings-modal-sub">Manage your account, security, and dashboard preferences.</div>
+
+                <div class="settings-admin-badge">
+                    <div class="settings-avatar" id="settings-avatar-icon">AK</div>
+                    <div class="settings-admin-info">
+                     <div class="settings-admin-name" id="settings-admin-name">Kumora Admin</div>
+                     <div class="settings-admin-email" id="settings-admin-email">admin@kumora.campus</div>
+                    </div>
+                    <div class="settings-online-dot"></div>
+                </div>
+            </div>
+
+            <!-- Tab navigation -->
+            <div class="settings-tabs">
+                <button class="settings-tab-btn active" data-tab="account"
+                    onclick="switchSettingsTab('account')">Account</button>
+                <button class="settings-tab-btn" data-tab="security"
+                    onclick="switchSettingsTab('security')">Security</button>
+                <button class="settings-tab-btn" data-tab="signin" onclick="switchSettingsTab('signin')">Sign
+                    In</button>
+                <button class="settings-tab-btn" data-tab="prefs"
+                    onclick="switchSettingsTab('prefs')">Preferences</button>
+            </div>
+
+            <!-- Tab body -->
+            <div class="settings-tab-body">
+
+                <!-- ── ACCOUNT TAB ── -->
+                <div class="settings-tab-pane active" id="settings-tab-account">
+                    <div class="settings-group">
+                        <div class="settings-section-label">Update Display Name</div>
+                        <label class="settings-input-label">Display Name</label>
+                        <input class="settings-input" type="text" id="display-name-input"
+                            placeholder="e.g. Admin Kwame Asante">
+                        <div class="settings-error" id="display-name-error"></div>
+                        <div style="margin-top:10px">
+                            <button class="btn-primary" onclick="handleUpdateDisplayName()">Save Name</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-section-label">Danger Zone</div>
+                        <div class="settings-danger-zone">
+                            <div class="settings-danger-title">Sign Out</div>
+                            <div class="settings-danger-sub">You will be signed out of this admin session. All unsaved
+                                changes will remain on the page until you reload.</div>
+                            <button class="btn-danger" onclick="handleSignOut()">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round">
+                                    <path d="M10 12l4-4-4-4M14 8H6M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
+                                </svg>
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECURITY TAB ── -->
+                <div class="settings-tab-pane" id="settings-tab-security">
+                    <div class="settings-group">
+                        <div class="settings-section-label">Change Password</div>
+                        <label class="settings-input-label">Current Password</label>
+                        <input class="settings-input" type="password" id="pw-current"
+                            placeholder="Enter current password" style="margin-bottom:10px">
+                        <label class="settings-input-label">New Password</label>
+                        <input class="settings-input" type="password" id="pw-new" placeholder="Min. 6 characters"
+                            style="margin-bottom:10px">
+                        <label class="settings-input-label">Confirm New Password</label>
+                        <input class="settings-input" type="password" id="pw-confirm"
+                            placeholder="Re-enter new password">
+                        <div class="settings-error" id="pw-error"></div>
+                        <div style="margin-top:12px">
+                            <button class="btn-primary" onclick="handleUpdatePassword()">Update Password</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-section-label">Session Info</div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Firebase Auth Active</div>
+                                <div class="settings-toggle-sub">Authentication layer is connected and running</div>
+                            </div>
+                            <div class="toggle-switch on" title="Auth active"></div>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Firestore Live Sync</div>
+                                <div class="settings-toggle-sub">Campus data is syncing from Cloud Firestore</div>
+                            </div>
+                            <div class="toggle-switch on" title="Firestore active"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SIGN IN TAB ── -->
+                <div class="settings-tab-pane" id="settings-tab-signin">
+                    <div class="settings-group">
+                        <div class="settings-section-label">Sign In with Another Admin Account</div>
+                        <div class="settings-signin-form">
+                            <div>
+                                <label class="settings-input-label">Admin Email</label>
+                                <input class="settings-input" type="email" id="signin-email"
+                                    placeholder="admin@dti.edu.gh">
+                            </div>
+                            <div>
+                                <label class="settings-input-label">Password</label>
+                                <input class="settings-input" type="password" id="signin-password"
+                                    placeholder="Enter password">
+                            </div>
+                            <div class="settings-error" id="signin-error"></div>
+                            <button class="btn-primary" id="signin-btn" onclick="handleSignIn()">Sign In</button>
+                        </div>
+                        <div
+                            style="margin-top:14px;padding:12px;background:var(--gold-tint);border-radius:var(--r-sm);border:1px solid var(--gold-glow)">
+                            <div style="font-size:11.5px;font-weight:600;color:var(--gold-dk)">ℹ️ Note</div>
+                            <div style="font-size:11px;color:var(--slate);margin-top:3px;line-height:1.5">Only
+                                pre-approved admin accounts registered in Firebase Auth can sign in. Contact the system
+                                owner to add new admin accounts.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── PREFERENCES TAB ── -->
+                <div class="settings-tab-pane" id="settings-tab-prefs">
+                    <div class="settings-group">
+                        <div class="settings-section-label">Notifications</div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Emergency Alert Sounds</div>
+                                <div class="settings-toggle-sub">Play audio when emergency alerts are triggered</div>
+                            </div>
+                            <div class="toggle-switch on"
+                                onclick="this.classList.toggle('on');showToast('Alert sounds ' + (this.classList.contains('on') ? 'enabled' : 'disabled'), 'gold')">
+                            </div>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Order Notifications</div>
+                                <div class="settings-toggle-sub">Show toast alerts for incoming marketplace orders</div>
+                            </div>
+                            <div class="toggle-switch on"
+                                onclick="this.classList.toggle('on');showToast('Order notifications ' + (this.classList.contains('on') ? 'enabled' : 'disabled'), 'gold')">
+                            </div>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">User Login Alerts</div>
+                                <div class="settings-toggle-sub">Notify when new users access the platform</div>
+                            </div>
+                            <div class="toggle-switch"
+                                onclick="this.classList.toggle('on');showToast('Login alerts ' + (this.classList.contains('on') ? 'enabled' : 'disabled'), 'gold')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-section-label">Dashboard</div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Live User Counter</div>
+                                <div class="settings-toggle-sub">Simulate real-time user count fluctuations on map</div>
+                            </div>
+                            <div class="toggle-switch on"
+                                onclick="this.classList.toggle('on');showToast('Live counter ' + (this.classList.contains('on') ? 'enabled' : 'disabled'), 'gold')">
+                            </div>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <div class="settings-toggle-label">Voice Agent</div>
+                                <div class="settings-toggle-sub">Toggle the campus voice assistant</div>
+                            </div>
+                            <div class="toggle-switch on" onclick="this.classList.toggle('on');toggleVoice()"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-section-label">System</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <button class="btn-secondary"
+                                onclick="showToast('Cache cleared successfully', 'success');addLog('admin','<strong>Dashboard cache</strong> cleared by admin','gold')">Clear
+                                Cache</button>
+                            <button class="btn-secondary" onclick="showToast('Full log exported', 'success')">Export All
+                                Logs</button>
+                            <button class="btn-secondary"
+                                onclick="showToast('System report generated', 'success')">Generate Report</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /settings-tab-body -->
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <script type="module" src="kumo.js"></script>
+
+</body>
+
+</html>

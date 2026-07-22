@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kumora Unified Portal</title>
+  <link rel="icon" href="./images/kumora.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wine: #722F37;
+      --wine-dark: #5A252B;
+      --gold: #C6A664;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: #FAFAF8;
+    }
+    #preloader {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(165deg, var(--wine-dark), #3d1418);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      color: #fff;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    .logo-spinner {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-spinner-ring {
+      position: absolute;
+      inset: 0;
+      border: 3px dashed var(--gold);
+      border-radius: 50%;
+      animation: spin 8s linear infinite;
+    }
+    .logo-spinner-inner {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      z-index: 2;
+    }
+    #preloader h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    #preloader p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    #portal-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="preloader">
+    <div class="logo-spinner">
+      <div class="logo-spinner-ring"></div>
+      <div class="logo-spinner-inner">K</div>
+    </div>
+    <h1>Connecting to Portal</h1>
+    <p id="loader-status">Verifying secure credentials...</p>
+  </div>
+
+  <iframe id="portal-frame" src="about:blank"></iframe>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const PAGES = {
+      admin: "admin.html",
+      staff: "index.html",
+      student: "student.html",
+      visitor: "visitor.html",
+      user: "user.html"
+    };
+
+    const LOGIN_PAGES = {
+      admin: "login-admin.html",
+      staff: "login-staff.html",
+      student: "login-student.html",
+      visitor: "login-visitor.html",
+      user: "login-user.html"
+    };
+
+    const loaderStatus = document.getElementById("loader-status");
+    const preloader = document.getElementById("preloader");
+    const iframe = document.getElementById("portal-frame");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Clear frame and send to landing
+        iframe.src = "about:blank";
+        window.location.href = "landing.html";
+        return;
+      }
+
+      try {
+        loaderStatus.textContent = "Loading security profile...";
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        
+        if (!userDoc.exists()) {
+          // No user profile in firestore, log out
+          await signOut(auth);
+          window.location.href = "landing.html";
+          return;
+        }
+
+        const profile = userDoc.data();
+        const role = profile.role || "user";
+
+        // Check verification for staff
+        if (role === "staff" && profile.verified === false) {
+          window.location.href = LOGIN_PAGES.staff;
+          return;
+        }
+
+        const targetPage = PAGES[role] || PAGES.user;
+        loaderStatus.textContent = "Booting " + role + " workspace...";
+        
+        // Load the iframe
+        iframe.src = targetPage;
+        iframe.style.display = "block";
+        
+        iframe.onload = () => {
+          // Hide preloader smoothly once inner dashboard is ready
+          preloader.classList.add("hidden");
+        };
+
+      } catch (err) {
+        console.error("Auth routing error:", err);
+        loaderStatus.textContent = "Authentication failed. Redirecting...";
+        setTimeout(() => {
+          window.location.href = "landing.html";
+        }, 2000);
+      }
+    });
+  </script>
+</body>
+</html>

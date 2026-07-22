@@ -1,0 +1,10 @@
+{
+  "name": "Kumora Campus Trace",
+  "description": "Campus management, analytics, attendance, announcements, and campus tracing system",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

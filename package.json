@@ -1,0 +1,25 @@
+{
+  "name": "kumora-campus-trace",
+  "version": "1.0.0",
+  "description": "Kumora Campus Trace Staff and Admin Dashboard",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "echo Built",
+    "lint": "echo No linting configured",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "express": "^5.2.1",
+    "html5-qrcode": "^2.3.8"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.3.0"
+  }
+}

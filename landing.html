@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kumora — Welcome</title>
+  <link rel="icon" href="./images/kumora.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --wine: #722F37;
+      --wine-dark: #5A252B;
+      --wine-light: rgba(114, 47, 55, .08);
+      --gold: #C6A664;
+      --gold-dark: #A88B4A;
+      --ink: #111111;
+      --ash: #B2BEB5;
+      --white: #FFFFFF;
+      --off-white: #FAFAF8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'DM Sans', system-ui, sans-serif; color: var(--ink); background: var(--off-white); }
+
+    .landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .landing::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -20%;
+      width: 70%; height: 140%;
+      background: radial-gradient(circle, rgba(198,166,100,.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px; height: 40px;
+      background: var(--wine);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 800; font-size: 15px; color: #fff;
+      box-shadow: 0 3px 16px rgba(114,47,55,.25);
+    }
+
+    .brand-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px; font-weight: 700; color: var(--ink);
+    }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .hero-inner {
+      max-width: 900px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-text h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 20px;
+    }
+
+    .hero-text h1 span {
+      color: var(--wine);
+    }
+
+    .hero-text p {
+      font-size: 17px;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 32px;
+      max-width: 440px;
+    }
+
+    .btn-get-started {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--wine), var(--wine-dark));
+      color: #fff;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px 36px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 14px 32px rgba(114,47,55,.22);
+      transition: transform .15s ease, box-shadow .2s ease;
+      text-decoration: none;
+    }
+
+    .btn-get-started:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px rgba(114,47,55,.3);
+    }
+
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .hero-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: 0 20px 60px rgba(114,47,55,.1);
+      border: 1px solid rgba(114,47,55,.08);
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+    }
+
+    .hero-card-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .hero-card h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .hero-card p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .hero-card .stat-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--ash);
+    }
+
+    .hero-stat {
+      flex: 1;
+    }
+
+    .hero-stat-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--wine);
+    }
+
+    .hero-stat-label {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .role-selection-section {
+      max-width: 1200px;
+      margin: 60px auto 40px;
+      padding: 0 40px;
+      width: 100%;
+    }
+
+    .role-selection-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 32px;
+      color: var(--ink);
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .role-card {
+      background: #fff;
+      border: 1px solid rgba(114,47,55,.08);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 8px 30px rgba(114,47,55,.03);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .role-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(114,47,55,.08);
+      border-color: var(--wine);
+    }
+
+    .role-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: var(--wine-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--wine);
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .role-card:hover .role-icon {
+      background: var(--wine);
+      color: #fff;
+    }
+
+    .role-card h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .role-card p {
+      font-size: 12.5px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .footer-bar {
+      text-align: center;
+      padding: 40px 20px 20px;
+      font-size: 12px;
+      color: #999;
+      font-family: 'DM Mono', monospace;
+    }
+
+    @media (max-width: 800px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-visual { display: none; }
+      .nav { padding: 16px 20px; }
+      .hero { padding: 20px; }
+      .role-selection-section { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="landing">
+  <nav class="nav">
+    <div class="brand">
+      <div class="brand-logo">K</div>
+      <div class="brand-name">Kumora</div>
+    </div>
+  </nav>
+
+  <main class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1>Welcome to <span>Kumora</span></h1>
+        <p>The unified campus management platform built for educators, administrators, and learners. Access your personalized dashboard in one secure place.</p>
+        <a href="#role-selection" class="btn-get-started">
+          Get Started
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hero-card-icon">🛡️</div>
+          <h3>Secure Access</h3>
+          <p>Every account receives a unique UID. Administrators review staff accounts before access is granted.</p>
+          <div class="stat-row">
+            <div class="hero-stat">
+              <div class="hero-stat-value">5</div>
+              <div class="hero-stat-label">Roles</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value">UID</div>
+              <div class="hero-stat-label">Unique per user</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value">100%</div>
+              <div class="hero-stat-label">Verified admins</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section id="role-selection" class="role-selection-section">
+    <h2 class="role-selection-title">Choose Your Portal</h2>
+    <div class="role-grid">
+      <a href="login-admin.html" class="role-card">
+        <div class="role-icon">🛡️</div>
+        <h3>Admin Portal</h3>
+        <p>Manage system configurations, user approvals, and global parameters.</p>
+      </a>
+      <a href="login-student.html" class="role-card">
+        <div class="role-icon">🎓</div>
+        <h3>Student Hub</h3>
+        <p>View announcements, check-in to classes, and browse the student market.</p>
+      </a>
+      <a href="login-staff.html" class="role-card">
+        <div class="role-icon">💼</div>
+        <h3>Staff Workspace</h3>
+        <p>Take attendance, view roster metrics, and manage class data.</p>
+      </a>
+      <a href="login-visitor.html" class="role-card">
+        <div class="role-icon">👋</div>
+        <h3>Visitor Access</h3>
+        <p>Register as a guest, view map navigation, and find campus support.</p>
+      </a>
+      <a href="login-user.html" class="role-card">
+        <div class="role-icon">👤</div>
+        <h3>General User</h3>
+        <p>Access basic campus news, updates, and view your profile info.</p>
+      </a>
+    </div>
+  </section>
+
+  <div class="footer-bar">KUMORA CAMPUS MANAGEMENT</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Kumora Campus Trace Staff Dashboard — Manage analytics and attendance" />
+  <meta name="theme-color" content="#722F37" />
+  <title>Kumora Campus Trace — Staff Dashboard</title>
+  <link rel="icon" href="./images/kumora.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<div id="preloader" class="preloader">
+  <div>
+    <h1>Loading staff dashboard…</h1>
+    <p>If the dashboard stays blank, check that Firebase is configured and that your browser is connected to the internet.</p>
+    <div style="margin-top:20px;">
+      <button onclick="window.enterDemoMode ? window.enterDemoMode() : (document.getElementById('preloader')?.remove(), document.getElementById('app-shell')?.classList.remove('hidden'))" style="background:#C6A664;color:#2C1810;border:none;padding:10px 22px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700;font-family:'Space Grotesk',sans-serif;">⚡ Enter Staff Dashboard Directly</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING VERIFICATION SCREEN -->
+<div id="pending-screen" class="hidden" style="position:fixed;inset:0;background:#5A252B;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;z-index:9999;">
+  <div style="border:1px solid #C6A664;padding:48px 56px;max-width:560px;text-align:center;box-shadow:0 0 80px rgba(198,166,100,.2);border-radius:4px;">
+    <div style="color:#C6A664;font-size:11px;letter-spacing:4px;text-transform:uppercase;margin-bottom:16px;">⬡ KUMORA CAMPUS TRACE</div>
+    <div style="color:#FAFAF8;font-size:28px;font-weight:700;margin-bottom:12px;font-family:'Space Grotesk',sans-serif;">AWAITING VERIFICATION</div>
+    <div style="color:#B2BEB5;font-size:13px;line-height:1.7;margin-bottom:16px;">
+      Your staff account has been created. An administrator must verify you before you can access the dashboard.
+    </div>
+    <div style="color:#C6A664;font-size:12px;font-family:'DM Mono',monospace;background:rgba(255,255,255,.05);padding:10px 16px;border-radius:6px;margin-bottom:24px;border:1px dashed rgba(198,166,100,.3);" id="pending-uid">UID: —</div>
+    <button onclick="signOut()" style="background:#722F37;color:#fff;border:1px solid #C6A664;padding:10px 24px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">Sign Out</button>
+  </div>
+</div>
+
+<!-- AUTH CONTAINER (signin / signup) -->
+<div id="auth-container" class="hidden">
+  <div class="auth-overlay">
+    <form id="auth-form" class="auth-card" autocomplete="on">
+      <div class="auth-header">
+        <div class="logo-badge"><img src="./images/kumora.png" alt="Logo"></div>
+        <h2>Staff Sign In</h2>
+        <div class="auth-sub">Sign in or create an account with your staff email.</div>
+      </div>
+
+      <div class="auth-body">
+        <label class="auth-label">Email</label>
+        <input id="auth-email" type="email" required placeholder="you@institution.edu" />
+
+        <label class="auth-label">Password</label>
+        <div class="auth-input-group">
+          <input id="auth-password" type="password" required placeholder="Minimum 6 characters" />
+          <button id="auth-toggle-password" type="button" class="auth-password-toggle" aria-label="Show password">👁️</button>
+        </div>
+
+        <div id="auth-error" class="auth-error" aria-live="polite"></div>
+        <button id="auth-forgot" type="button" class="auth-forgot-link">Forgot password?</button>
+      </div>
+
+      <div class="auth-actions" style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+        <div style="display:flex;gap:8px;">
+          <button id="auth-submit" type="submit" class="btn-primary" style="flex:1;">Sign In</button>
+          <button id="auth-toggle" type="button" class="btn-amber" style="flex:1;">Switch to Sign Up</button>
+        </div>
+        <button type="button" onclick="window.enterDemoMode ? window.enterDemoMode() : null" style="background:#C6A664;color:#2C1810;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:700;font-family:'Space Grotesk',sans-serif;width:100%;">⚡ Instant Demo Access (Explore Staff Dashboard)</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="app-shell" class="hidden">
+
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge"><img src="./images/kumora.png" alt="Logo"></div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+      <button type="button" data-nav="analytics">
+        <span class="nav-icon">📊</span> Analytics
+      </button>
+      <button type="button" data-nav="attendance">
+        <span class="nav-icon">📝</span> Attendance
+      </button>
+      <button type="button" data-nav="messages">
+        <span class="nav-icon">📢</span> Announcements
+      </button>
+      <button type="button" data-nav="map">
+        <span class="nav-icon">🗺️</span> Campus Map
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">S</div>
+        <div class="user-info">
+          <div class="user-name" id="user-display">Staff Member</div>
+          <div class="user-role">● STAFF</div>
+        </div>
+      </div>
+      <button type="button" id="btn-signout">Sign Out</button>
+    </div>
+  </aside>
+
+  <main id="main-canvas">
+
+    <div id="topbar">
+      <div class="topbar-title" id="topbar-title">Analytics Workspace</div>
+      <div class="topbar-meta">
+        <div class="live-indicator">
+          <div class="live-dot"></div>
+          LIVE
+        </div>
+        <div class="topbar-time" id="topbar-clock">—</div>
+      </div>
+    </div>
+
+    <section class="panel-section" id="panel-analytics">
+      <div class="panel-header">
+        <div class="panel-title">Analytics Workspace</div>
+        <div class="panel-desc">Real-time grade metrics · pass/fail distribution · exportable reports</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-tile emerald">
+          <div class="stat-label">Avg Grade</div>
+          <div class="stat-value" id="stat-avg-grade">—</div>
+        </div>
+        <div class="stat-tile indigo">
+          <div class="stat-label">Enrolled</div>
+          <div class="stat-value" id="stat-enrolled">—</div>
+        </div>
+        <div class="stat-tile emerald">
+          <div class="stat-label">Passing</div>
+          <div class="stat-value" id="stat-pass-count">—</div>
+        </div>
+        <div class="stat-tile amber">
+          <div class="stat-label">At Risk</div>
+          <div class="stat-value" id="stat-risk-count">—</div>
+        </div>
+        <div class="stat-tile red">
+          <div class="stat-label">Failing</div>
+          <div class="stat-value" id="stat-fail-count">—</div>
+        </div>
+      </div>
+
+      <div class="toolbar-row">
+        <label class="toolbar-label">COURSE</label>
+        <select id="analytics-course-select" class="kt-select"></select>
+        <button type="button" id="btn-export-csv" class="btn-primary" style="margin-left:auto;">⬇ Export Report (CSV)</button>
+      </div>
+
+      <div id="analytics-loading" class="hidden" style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;padding:8px 0;display:flex;align-items:center;gap:8px;">
+        <span class="spinner"></span> Loading course data…
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-container">
+          <div class="chart-title">Student Grade Distribution</div>
+          <div id="analytics-chart-wrap">
+            <canvas id="analytics-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">Pass / Fail Ratio</div>
+          <div id="analytics-donut-wrap">
+            <canvas id="analytics-donut"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="roster-header">
+          <div class="chart-title">Student Roster</div>
+          <div class="roster-controls">
+            <button type="button" id="btn-open-qr-generator" class="btn-primary" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: #2C1810; font-weight:700; font-size: 12px; border-radius: 8px; padding: 6px 14px; gap: 6px; display: inline-flex; align-items: center; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(197,160,89,.25);">
+              🪪 QR ID Card Generator
+            </button>
+            <div class="roster-filter-pills" id="roster-filter-pills">
+              <button type="button" class="roster-filter-btn active" data-filter="all">All</button>
+              <button type="button" class="roster-filter-btn" data-filter="at-risk">⚠️ At Risk</button>
+              <button type="button" class="roster-filter-btn" data-filter="pass">Pass</button>
+              <button type="button" class="roster-filter-btn" data-filter="fail">Fail</button>
+            </div>
+            <div class="roster-search-container">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input 
+                type="text" 
+                id="roster-search-input" 
+                class="roster-search-input" 
+                placeholder="Search by student name or ID..." 
+                aria-label="Search student roster by name or ID"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="button" id="roster-search-clear" class="roster-search-clear hidden" aria-label="Clear search">✕</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="kt-table">
+            <thead>
+              <tr>
+                <th class="th">Name</th>
+                <th class="th">Student ID</th>
+                <th class="th">Grade</th>
+                <th class="th">Attendance</th>
+                <th class="th">Status</th>
+                <th class="th" style="text-align:center;">QR ID Badge</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-table-body">
+              <tr class="loading-row">
+                <td colspan="6"><span class="spinner"></span> Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-section hidden" id="panel-attendance">
+      <div class="panel-header">
+        <div class="panel-title">Attendance Management</div>
+        <div class="panel-desc">Mark and submit attendance · batch Firestore write on submit</div>
+      </div>
+
+      <!-- Sparkline Trend Card -->
+      <div class="chart-container attendance-trend-card" style="margin-bottom: 20px;">
+        <div class="trend-header">
+          <div>
+            <div class="chart-title" style="margin-bottom: 4px;">14-Day Attendance Trend</div>
+            <div class="panel-desc" style="font-size: 11px;" id="att-trend-subtitle">Daily attendance percentage over the last 2 weeks</div>
+          </div>
+          <div class="trend-metrics">
+            <div class="trend-stat">
+              <span class="trend-label">14-Day Avg</span>
+              <span class="trend-val" id="att-trend-avg">—%</span>
+            </div>
+            <div class="trend-stat">
+              <span class="trend-label">Latest</span>
+              <span class="trend-val" id="att-trend-latest">—%</span>
+            </div>
+            <div class="trend-stat">
+              <span class="trend-label">Trend</span>
+              <span class="trend-badge" id="att-trend-direction">—</span>
+            </div>
+          </div>
+        </div>
+        <div id="attendance-sparkline-wrap" style="height: 120px; position: relative; margin-top: 14px;">
+          <canvas id="attendance-sparkline-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="toolbar-row">
+        <label class="toolbar-label">COURSE</label>
+        <select id="attendance-course-select" class="kt-select"></select>
+        <button type="button" id="btn-open-qr-scanner" class="btn-amber" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">
+          📷 Scan Student QR Code
+        </button>
+        <div style="margin-left:auto;display:flex;gap:12px;align-items:center;">
+          <div class="att-summary">
+            <div class="att-count-block">
+              <div class="att-count-dot" style="background:var(--accent-emerald)"></div>
+              <span class="att-count-label">Present</span>
+               <span class="att-count-num" id="att-count-present" style="color:var(--accent-emerald)">0</span>
+            </div>
+            <div class="att-count-block">
+              <div class="att-count-dot" style="background:var(--accent-red)"></div>
+              <span class="att-count-label">Absent</span>
+                <span class="att-count-num" id="att-count-absent" style="color:var(--accent-red)">0</span>
+            </div>
+          </div>
+          <button type="button" id="btn-submit-attendance" class="btn-success">💾 Submit Attendance Roster</button>
+        </div>
+      </div>
+
+      <div id="attendance-loading" style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;padding:8px 0;display:flex;align-items:center;gap:8px;">
+        <span class="spinner"></span> Loading students…
+      </div>
+
+      <div class="table-scroll">
+        <table class="kt-table">
+          <thead>
+            <tr>
+              <th class="th" style="width: 22%;">Student Name</th>
+              <th class="th" style="width: 16%;">Student ID</th>
+              <th class="th" style="width: 18%;">Status</th>
+              <th class="th" style="width: 44%;">Check-In Note / Comments</th>
+            </tr>
+          </thead>
+          <tbody id="attendance-tbody">
+            <tr class="loading-row">
+              <td colspan="4"><span class="spinner"></span> Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-section hidden" id="panel-messages">
+      <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div class="panel-title">Department Announcements &amp; Real-Time Push Alerts</div>
+          <div class="panel-desc">Live feed · Firebase Cloud Messaging (FCM) &amp; Firestore live sync</div>
+        </div>
+        <button type="button" id="btn-enable-fcm" class="btn-amber" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">
+          🔔 Enable Real-Time Push Notifications (FCM)
+        </button>
+      </div>
+
+      <div id="fcm-status-bar" class="hidden" style="margin-bottom:16px; padding:12px 16px; background:rgba(198,166,100,0.12); border:1px solid rgba(198,166,100,0.3); border-radius:8px; font-size:12px; font-family:'DM Mono',monospace; color:var(--text-main);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span><strong>FCM MESSAGING STATUS:</strong> <span id="fcm-token-text" style="color:#2a7a4f">Push Notifications Connected</span></span>
+          <span style="font-size:10px; background:rgba(114,47,55,0.15); padding:2px 8px; border-radius:4px; color:var(--wine); font-weight:700;">LIVE FCM ACTIVE</span>
+        </div>
+      </div>
+
+      <div id="announcements-feed">
+        <div class="ann-empty"><span class="spinner"></span> Connecting to announcements feed…</div>
+      </div>
+    </section>
+
+    <section class="panel-section hidden" id="panel-map">
+      <div class="panel-header">
+        <div class="panel-title">Campus Map</div>
+        <div class="panel-desc">Interactive digital twin · buildings, routing &amp; live navigation</div>
+      </div>
+      <div class="toolbar-row">
+        <label class="toolbar-label">DTI CAMPUS</label>
+        <a href="dti-campus-map.html" target="_blank" rel="noopener" class="btn-primary" style="margin-left:auto;text-decoration:none;">⛶ Open Full Screen</a>
+      </div>
+      <div style="position:relative;width:100%;height:70vh;min-height:480px;border-radius:12px;overflow:hidden;border:1px solid var(--border,#2a2a2a);background:#f5f2ec;">
+        <iframe src="dti-campus-map.html" title="DTI Campus Map" loading="lazy" allowfullscreen
+                style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- QR CODE SCANNER MODAL -->
+<div id="qr-modal-overlay" class="modal-overlay hidden">
+  <div class="modal-card qr-modal-card">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:22px;">📷</span>
+        <div>
+          <h3 class="modal-title">Student QR / Barcode Check-In</h3>
+          <p class="modal-subtitle" id="qr-modal-course-title">Scan student ID card or barcode to record attendance</p>
+        </div>
+      </div>
+      <button type="button" id="btn-close-qr-modal" class="modal-close-btn">&times;</button>
+    </div>
+
+    <div class="qr-modal-body">
+      <!-- Live Video Reader Container -->
+      <div id="qr-reader-wrap" class="qr-reader-wrap">
+        <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+      </div>
+
+      <!-- Live Scan Notification Feedback -->
+      <div id="qr-scan-feedback" class="qr-scan-feedback hidden"></div>
+
+      <!-- Manual Input & Simulation Controls -->
+      <div class="qr-manual-box">
+        <div style="margin-bottom:10px;">
+          <label class="toolbar-label" style="display:block;margin-bottom:4px;">CHECK-IN NOTE / COMMENT (OPTIONAL)</label>
+          <input type="text" id="qr-scan-note-input" class="kt-select" placeholder="Attach note (e.g. Arrived late, Excused medical, Active participation)..." style="width:100%;" />
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <label class="toolbar-label">MANUAL CHECK-IN / KEYBOARD INPUT</label>
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--ash-dark)">Enter Student ID or Name</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="qr-manual-input" class="kt-select" placeholder="e.g. STU-1001 or Alex Johnson..." style="flex:1;" />
+          <button type="button" id="btn-manual-checkin" class="btn-primary" style="white-space:nowrap;padding:8px 16px;">Check In</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          <span style="font-size:11px;color:var(--ash-dark);font-family:'DM Mono',monospace;display:block;margin-bottom:6px;font-weight:600;">CLICK-TO-SIMULATE SCAN (COURSE ROSTER):</span>
+          <div id="qr-quick-roster-tags" style="display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;padding:2px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR ID Card Generator Modal -->
+<div id="qr-generator-modal-overlay" class="modal-overlay hidden">
+  <div class="modal-card" style="max-width: 680px; width: 95%; padding: 28px; border-radius: 20px; background: #FAFAF8;">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid rgba(114,47,55,0.12); padding-bottom: 14px;">
+      <div>
+        <h3 class="modal-title" style="font-family: 'Playfair Display', serif; font-size: 20px; color: var(--wine-dark); font-weight: 700; margin:0;">🪪 Student QR ID Card Generator</h3>
+        <p style="font-size: 12px; color: var(--muted); margin-top: 2px;">Generate, download PNGs, or print official digital & physical student ID cards</p>
+      </div>
+      <button type="button" id="btn-close-qr-gen-modal" style="font-size: 20px; color: var(--muted); cursor: pointer; background: none; border: none; padding: 4px 8px;">✕</button>
+    </div>
+
+    <!-- Student Selection Toolbar -->
+    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px; background: #FFFFFF; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--gray);">
+      <label style="font-size: 11px; font-weight: 700; color: var(--wine-dark); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">SELECT STUDENT:</label>
+      <select id="qr-student-select" class="kt-select" style="flex: 1; font-size: 13px; font-weight: 600;"></select>
+    </div>
+
+    <!-- Printable ID Badge Card Area -->
+    <div id="qr-card-print-wrap" style="display: flex; justify-content: center; margin-bottom: 24px;">
+      <div id="qr-card-preview" class="student-id-card">
+        <!-- Badge Top Header Bar -->
+        <div class="id-card-header">
+          <div class="id-card-logo">
+            <span class="id-card-logo-icon">🪪</span>
+            <div class="id-card-brand">
+              <div class="id-card-title">KUMORA CAMPUS TRACE</div>
+              <div class="id-card-subtitle">OFFICIAL STUDENT IDENTIFICATION</div>
+            </div>
+          </div>
+          <span class="id-card-badge-seal">VERIFIED</span>
+        </div>
+
+        <!-- Badge Body -->
+        <div class="id-card-body">
+          <div class="id-card-photo-wrap">
+            <div class="id-card-avatar" id="id-card-avatar">ST</div>
+            <div class="id-card-photo-label">OFFICIAL ID</div>
+          </div>
+
+          <div class="id-card-details">
+            <div class="id-card-field-group">
+              <span class="id-card-label">STUDENT NAME</span>
+              <span class="id-card-value-name" id="id-card-name">Student Name</span>
+            </div>
+            <div class="id-card-row">
+              <div class="id-card-field-group">
+                <span class="id-card-label">STUDENT ID</span>
+                <span class="id-card-value mono" id="id-card-stuid">STU-1001</span>
+              </div>
+              <div class="id-card-field-group">
+                <span class="id-card-label">COURSE</span>
+                <span class="id-card-value mono" id="id-card-course">CS301</span>
+              </div>
+            </div>
+            <div class="id-card-row">
+              <div class="id-card-field-group">
+                <span class="id-card-label">ISSUE DATE</span>
+                <span class="id-card-value" id="id-card-date">2026-07-22</span>
+              </div>
+              <div class="id-card-field-group">
+                <span class="id-card-label">STATUS</span>
+                <span class="id-card-value" style="color: #2E6B3A; font-weight: 700;">ACTIVE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Code Container -->
+          <div class="id-card-qr-box">
+            <img id="id-card-qr-img" src="" alt="Student QR Code" />
+            <div class="id-card-qr-caption">SCAN TO CHECK-IN</div>
+          </div>
+        </div>
+
+        <!-- Badge Footer Bar -->
+        <div class="id-card-footer">
+          <span>KUMORA ACADEMIC SECURITY SYSTEM</span>
+          <span class="mono" id="id-card-barcode-num">||||| | |||| ||| ||||</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Batch Printable Container -->
+    <div id="qr-batch-print-area" class="hidden"></div>
+
+    <!-- Actions Row -->
+    <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+      <button type="button" id="btn-download-qr-card" class="btn-primary" style="background: var(--wine); color: #FFF; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+        📥 Download ID Card (PNG)
+      </button>
+      <button type="button" id="btn-print-qr-card" class="btn-primary" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: #2C1810; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+        🖨️ Print Student ID Card
+      </button>
+      <button type="button" id="btn-batch-print-qr" class="btn-primary" style="background: var(--charcoal); color: #FFF; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px;">
+        📑 Batch Print Course Cards
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  (function tickClock() {
+    const el = document.getElementById("topbar-clock");
+    function update() {
+      if (el) el.textContent = new Date().toLocaleTimeString("en-GB", {
+        hour: "2-digit", minute: "2-digit", second: "2-digit"
+      });
+    }
+    update();
+    setInterval(update, 1000);
+  })();
+</script>
+
+<script type="module" src="./app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Kumora — User Dashboard" />
+  <meta name="theme-color" content="#722F37" />
+  <title>Kumora — User Dashboard</title>
+  <link rel="icon" href="./images/kumora.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="preloader" class="preloader">
+  <div>
+    <h1>Loading user dashboard…</h1>
+    <p>If the page stays blank, check your internet connection and Firebase setup.</p>
+  </div>
+</div>
+
+<div id="app-shell" class="hidden">
+
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge"><img src="./images/kumora.png" alt="Logo"></div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Workspace</div>
+      <button type="button" data-nav="announcements" class="nav-active">
+        <span class="nav-icon">📢</span> Announcements
+      </button>
+      <button type="button" data-nav="profile">
+        <span class="nav-icon">👤</span> Profile
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="user-display-name">User</div>
+          <div class="user-role">● USER</div>
+        </div>
+      </div>
+      <button type="button" onclick="signOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <main id="main-canvas">
+    <div id="topbar">
+      <div class="topbar-title" id="topbar-title">User Dashboard</div>
+      <div class="topbar-meta">
+        <div class="live-indicator"><div class="live-dot"></div> LIVE</div>
+        <div class="topbar-time" id="topbar-clock">—</div>
+      </div>
+    </div>
+
+    <section class="panel-section" id="panel-announcements">
+      <div class="panel-header">
+        <div class="panel-title">Campus Announcements</div>
+        <div class="panel-desc">Latest updates for all campus users</div>
+      </div>
+      <div id="user-announcements-feed">
+        <div class="ann-empty"><span class="spinner"></span> Connecting to announcements…</div>
+      </div>
+    </section>
+
+    <section class="panel-section hidden" id="panel-profile">
+      <div class="panel-header">
+        <div class="panel-title">My Profile</div>
+        <div class="panel-desc">Your account information</div>
+      </div>
+      <div class="card" style="max-width:520px">
+        <div class="card-body">
+          <div class="toolbar-row" style="flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:0">
+            <div><span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ash-dark);text-transform:uppercase;letter-spacing:1.5px">Name</span><div style="font-size:15px;font-weight:600;margin-top:2px" id="profile-name">—</div></div>
+            <div><span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ash-dark);text-transform:uppercase;letter-spacing:1.5px">Email</span><div style="font-size:15px;font-weight:600;margin-top:2px" id="profile-email">—</div></div>
+            <div><span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ash-dark);text-transform:uppercase;letter-spacing:1.5px">Role</span><div style="font-size:15px;font-weight:600;margin-top:2px" id="profile-role">—</div></div>
+            <div><span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--ash-dark);text-transform:uppercase;letter-spacing:1.5px">UID</span><div style="font-size:15px;font-weight:600;margin-top:2px;font-family:'DM Mono',monospace" id="profile-uid">—</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+  import { auth, db } from "./firebase-config.js";
+  import { signOut as fbSignOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const isFrame = window.self !== window.top;
+
+  window.signOut = async function() {
+    await fbSignOut(auth);
+    if (!isFrame) {
+      window.location.href = "login-user.html";
+    }
+  };
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      if (!isFrame) {
+        window.location.href = "login-user.html";
+      }
+      return;
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const role = snap.exists() ? snap.data().role : "user";
+    const verified = snap.exists() ? snap.data().verified : true;
+    const displayName = snap.exists() ? snap.data().displayName : (user.displayName || user.email.split("@")[0]);
+
+    if (!isFrame) {
+      if (role === "admin") { window.location.href = "admin.html"; return; }
+      if (role === "staff" && !verified) {
+        window.location.href = "login-staff.html";
+        return;
+      }
+      if (role === "staff") { window.location.href = "index.html"; return; }
+    }
+
+    document.getElementById("user-display-name").textContent = displayName;
+    document.getElementById("user-avatar").textContent = displayName.trim().charAt(0).toUpperCase() || "U";
+    document.getElementById("profile-name").textContent = displayName;
+    document.getElementById("profile-email").textContent = user.email;
+    document.getElementById("profile-role").textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    document.getElementById("profile-uid").textContent = user.uid;
+
+    const preloader = document.getElementById("preloader");
+    if (preloader) preloader.remove();
+    document.getElementById("app-shell")?.classList.remove("hidden");
+
+    const clockEl = document.getElementById("topbar-clock");
+    (function tick() {
+      if (!clockEl) return;
+      clockEl.textContent = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setTimeout(tick, 1000);
+    })();
+
+    const feed = document.getElementById("user-announcements-feed");
+    onSnapshot(collection(db, "announcements"), (snap) => {
+      feed.innerHTML = "";
+      if (snap.empty) { feed.innerHTML = '<div class="ann-empty">No announcements yet.</div>'; return; }
+      let items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      items.sort((a,b) => (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) - (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0));
+      items.forEach(data => {
+        const card = document.createElement("div");
+        card.className = "ann-card";
+        card.style.cssText = "background:#fff; border-left:4px solid #722F37; padding:16px; margin-bottom:12px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04)";
+        const dateStr = data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : (data.date || new Date().toLocaleDateString());
+        card.innerHTML = `<div class="ann-top" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="ann-title" style="font-weight:700;color:#722F37;font-size:15px">${data.title || "Campus Notice"}</div><span class="ann-meta" style="font-size:11px;color:#888">${dateStr}</span></div><div class="ann-body" style="font-size:13px;color:#2C1810;line-height:1.6">${data.body || data.content || ""}</div>`;
+        feed.appendChild(card);
+      });
+    });
+
+    // Emergency alert live listener
+    try {
+      onSnapshot(collection(db, "emergency_alerts"), (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added") {
+            const alert = change.doc.data();
+            const alertCard = document.createElement("div");
+            alertCard.style.cssText = "background:rgba(114,47,55,0.1); border:2px solid #722F37; padding:16px; margin-bottom:12px; border-radius:8px;";
+            alertCard.innerHTML = `<div style="font-weight:700;color:#722F37;font-size:14px;margin-bottom:4px;">🚨 EMERGENCY ALERT: ${alert.title || 'CAMPUS URGENT BROADCAST'}</div><div style="font-size:13px;color:#111;">${alert.text || alert.body || 'Please follow campus safety protocols.'}</div>`;
+            feed.prepend(alertCard);
+          }
+        });
+      });
+    } catch(e) {}
+
+    document.querySelectorAll("[data-nav]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const panel = btn.dataset.nav;
+        document.querySelectorAll(".panel-section").forEach(s => s.classList.add("hidden"));
+        document.querySelectorAll("[data-nav]").forEach(b => b.classList.remove("nav-active"));
+        document.getElementById("panel-" + panel)?.classList.remove("hidden");
+        btn.classList.add("nav-active");
+        document.getElementById("topbar-title").textContent = panel === "announcements" ? "Announcements" : "Profile";
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
